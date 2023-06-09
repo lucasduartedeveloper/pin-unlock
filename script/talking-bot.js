@@ -391,7 +391,8 @@ $(document).ready(function() {
     debugElemBot.style.height = (50)+"px";
     debugElemBot.style.zIndex = "3";
     debugElemBot.onclick = function() {
-        botMove();
+        startBot();
+        //botMove();
     };
     if (debug)
     document.body.appendChild(debugElemBot);
@@ -634,7 +635,7 @@ var debugMark = {
 
 var last_output = "";
 var last_pin = "";
-var last_digit = false;
+var last_digit = -1;
 
 var botMove = function() {
     var pin = last_pin ? pinBotAdvice.innerText : getPin();
@@ -647,7 +648,7 @@ var botMove = function() {
     else if (output.includes(">"))
     pin = move(pin, 2);
     else if (output.includes("x"))
-    pin = change(pin);
+    pin = change(pin, last_digit);
 
     output = readInput_bot(pin);
 
@@ -677,7 +678,7 @@ var botMove = function() {
        value(output) + " - " + readInput_bot(pin) +  " - " + pin
     );
 
-    if (value(last_output) > 7 && 
+    if (value(last_output) > 5 && 
     value(last_output) < 9 && value(output) == 9)
     last_digit = get_digit(last_pin, pin, "last");
 
@@ -688,14 +689,42 @@ var botMove = function() {
     last_output = output;
 };
 
+// 5232 -> 5272
+// 5273
+
+// 5212 -> 5213
+// 5273
+
 var get_digit = function(last_pin, pin, digit_name) {
-    // 5232 -> 5272
-    // 5273
-    return true;
+    var digit = 0;
+    if (digit_name == "last") {
+        var contains = [];
+        for (var n = 0; n < 4; n++) {
+            if (pin[n] != last_pin[n])
+            digit = n;
+        }
+    }
+    return digit;
 };
 
+var bot_running = false;
 var botInterval = false;
 var startBot = function() {
+    if (bot_running) return;
+
+    var pin = Math.floor(Math.random()*10000).
+    toString().padStart(4, "0");
+
+    last_output = "";
+    last_pin = "";
+    last_digit = -1;
+
+    pinBotLastAdvice.innerText = "0000";
+    pinBotAdvice.innerText = pin;
+
+    debugElemBot.style.color = "#090";
+    bot_running = true;
+
     botInterval = setInterval(function() {
        botMove();
        pinInput.value = pinBotAdvice.innerText;
@@ -707,6 +736,8 @@ var startBot = function() {
 
 var killBot = function() {
     clearInterval(botInterval);
+    debugElemBot.style.color = "#ff0";
+    bot_running = false;
 };
 
 var value = function(output) {
@@ -731,8 +762,8 @@ var move = function(pin, amt) {
     return split.join("");
 };
 
-var change = function(pin) {
-    var n = Math.floor(Math.random()*4);
+var change = function(pin, digit=-1) {
+    var n = digit > 0 ? digit : Math.floor(Math.random()*4);
     var rnd = Math.floor(Math.random()*2);
     var amt = Math.floor(Math.random()*10);
     var dir = rnd ? amt*1 : amt*-1;
