@@ -634,6 +634,7 @@ var debugMark = {
 
 var last_output = "";
 var last_pin = "";
+var last_digit = false;
 
 var botMove = function() {
     var pin = last_pin ? pinBotAdvice.innerText : getPin();
@@ -676,11 +677,21 @@ var botMove = function() {
        value(output) + " - " + readInput_bot(pin) +  " - " + pin
     );
 
+    if (value(last_output) > 7 && 
+    value(last_output) < 9 && value(output) == 9)
+    last_digit = get_digit(last_pin, pin, "last");
+
     pinBotAdvice.innerText = pin;
     pinBotLastAdvice.innerText = 
     value(last_output) + ">" + value(output) + " - " + last_pin;
 
     last_output = output;
+};
+
+var get_digit = function(last_pin, pin, digit_name) {
+    // 5232 -> 5272
+    // 5273
+    return true;
 };
 
 var botInterval = false;
