@@ -10,6 +10,7 @@ var playerId = new Date().getTime();
 var remoteObj = {
     locked: true,
     pin: "0000", //"1432", //"0000",
+    hls_source: "",
     mistakes: 0,
     timestamp: 0
 };
@@ -27,7 +28,17 @@ var requestUID = function() {
     });
 };
 
+var input_buttons = false;
 var getPin = function() {
+    if (input_buttons) {
+        var result = 
+        pinInput.innerText + 
+        pinInput1.innerText + 
+        pinInput2.innerText + 
+        pinInput3.innerText;
+        return result;
+    }
+
     var result = 
     pinInput.value + 
     pinInput1.value + 
@@ -43,6 +54,8 @@ var updateScreen = function(remote=false) {
         "FFECHADO" : "FECHADO";
         //content.style.display = "none";
         //renderer.domElement.style.display = "none";
+        remoteVideo.style.display = "none";
+        remoteVideo.pause();
     }
     else {
         startTimer();
@@ -50,10 +63,17 @@ var updateScreen = function(remote=false) {
         "AABERTO" : "ABERTO";
         //content.style.display = "initial";
         //renderer.domElement.style.display = "initial";
+        remoteVideo.src = remoteObj.hls_source;
+        remoteVideo.style.display = "initial";
+        remoteVideo.load();
+
+        var rnd = new Date().getTime();
+        remoteVideo.style.backgroundImage = 
+        "url("+(remoteObj.img_source+"&f="+rnd)+")";
     }
     if (remoteObj.mistakes > 0) {
         mistakeCount.innerHTML = 
-        readInput(getPin()) +"<br>falhou "+
+        readInput_icons3(getPin()) +"<br>falhou "+
         remoteObj.mistakes + " vez";
         mistakeCount.innerHTML += remoteObj.mistakes > 1 ?
         "es" : "";
@@ -72,7 +92,7 @@ var requestPIN = function() {
         method: "GET"
     }).done(function(data, status, xhr) {
         var obj = JSON.parse(data);
-        remoteObj.pin = obj.pin;
+        remoteObj.pin = obj.pin1;
         updateScreen();
     });
 };
@@ -85,20 +105,30 @@ $(document).ready(function() {
     $("#title").css("color", "#fff");
 
     var params = new URLSearchParams(document.location.search);
-    var debug = false;
+    var debug = true; //false;
     if (params.has("debug")) {
         debug = params.get("debug") == "true";
     }
 
     requestPIN();
+    //requestPIN_cb();
 
     width = sw/1.2;
 
+    if (input_buttons)
+    pinInput = document.createElement("span");
+    else
     pinInput = document.createElement("input");
+
     pinInput.style.position = "fixed";
     pinInput.style.background = "#333";
     pinInput.style.color = "#fff";
+
+    if (input_buttons)
+    pinInput.innerText = "0";
+    else
     pinInput.value = "";
+
     pinInput.type = debug ? "text" : "password";
     pinInput.style.textAlign = "center";
     //pinInput.style.letterSpacing = "25px";
@@ -107,7 +137,12 @@ $(document).ready(function() {
     pinInput.style.lineHeight = "50px";
     pinInput.style.left = ((sw/2)-(75))+"px";
     pinInput.style.top = ((sh/2)-(25))+"px";
-    pinInput.style.width = (150)+"px"; //(25)+"px";
+
+    if (input_buttons)
+    pinInput.style.width = (25)+"px"
+    else
+    pinInput.style.width = (150)+"px"; //(25)+"px";;
+
     pinInput.style.height = (50)+"px";
     pinInput.style.border = "1px solid #fff";
     pinInput.style.outline = "none";
@@ -115,34 +150,47 @@ $(document).ready(function() {
     document.body.appendChild(pinInput);
 
     var pinOninput = function() {
-       if (this.nextInput && this.value.length) this.nextInput.focus();
+       /*if (this.nextInput && this.value.length) this.nextInput.focus();
        if (this.previousInput && !this.value.length) 
-       this.previousInput.focus();
+       this.previousInput.focus();*/
+       var value = parseInt(this.innerText);
+       value += 1;
+       value = value > 9 ? 0 : value;
+       this.innerText = value;
     };
-    //pinInput.onkeyup = pinOninput;
+    if (input_buttons)
+    pinInput.onclick = pinOninput;
+    else
+    pinInput.onkeyup = pinOninput;
 
     var space = 50/3;
 
     pinInput1 = pinInput.cloneNode();
+    pinInput1.innerText = "0";
     pinInput.nextInput = pinInput1;
     pinInput1.previousInput = pinInput;
-    pinInput1.onkeyup = pinOninput;
+    pinInput1.onclick = pinOninput;
     pinInput1.style.left = ((sw/2)-(50-space))+"px";
-    //document.body.appendChild(pinInput1);
+    if (input_buttons)
+    document.body.appendChild(pinInput1);
 
     pinInput2 = pinInput.cloneNode();
+    pinInput2.innerText = "0";
     pinInput1.nextInput = pinInput2;
     pinInput2.previousInput = pinInput1;
-    pinInput2.onkeyup = pinOninput;
+    pinInput2.onclick = pinOninput;
     pinInput2.style.left = ((sw/2)+(25-space))+"px";
-    //document.body.appendChild(pinInput2);
+    if (input_buttons)
+    document.body.appendChild(pinInput2);
 
     pinInput3 = pinInput.cloneNode();
+    pinInput3.innerText = "0";
     pinInput2.nextInput = pinInput3;
     pinInput3.previousInput = pinInput2;
-    pinInput3.onkeyup = pinOninput;
+    pinInput3.onclick = pinOninput;
     pinInput3.style.left = ((sw/2)+(50))+"px";
-    //document.body.appendChild(pinInput3);
+    if (input_buttons)
+    document.body.appendChild(pinInput3);
 
     pinConfirm = document.createElement("span");
     pinConfirm.style.position = "fixed";
@@ -187,6 +235,47 @@ $(document).ready(function() {
         }
     };
     document.body.appendChild(pinConfirm);
+
+    pinBotLastAdvice = document.createElement("span");
+    pinBotLastAdvice.style.position = "fixed";
+    pinBotLastAdvice.style.color = "#990";
+    pinBotLastAdvice.innerText = "0000";
+    pinBotLastAdvice.fontSize = "25px";
+    pinBotLastAdvice.style.lineHeight = "50px";
+    pinBotLastAdvice.style.textAlign = "right";
+    pinBotLastAdvice.style.left = ((sw/2)-(185))+"px";
+    pinBotLastAdvice.style.top = ((sh/2)-(75))+"px";
+    pinBotLastAdvice.style.width = (100)+"px";
+    pinBotLastAdvice.style.height = (50)+"px";
+    //pinBotAdvice.style.border = "1px solid #fff";
+    pinBotLastAdvice.style.borderRadius = "10px";
+    pinBotLastAdvice.style.zIndex = "3";
+    document.body.appendChild(pinBotLastAdvice);
+
+    pinBotAdvice = document.createElement("span");
+    pinBotAdvice.style.position = "fixed";
+    pinBotAdvice.style.color = "#ff0";
+    pinBotAdvice.innerText = "0000";
+    pinBotAdvice.style.lineHeight = "50px";
+    pinBotAdvice.style.textAlign = "right";
+    pinBotAdvice.style.left = ((sw/2)-(185))+"px";
+    pinBotAdvice.style.top = ((sh/2)-(25))+"px";
+    pinBotAdvice.style.width = (100)+"px";
+    pinBotAdvice.style.height = (50)+"px";
+    //pinBotAdvice.style.border = "1px solid #fff";
+    pinBotAdvice.style.borderRadius = "10px";
+    pinBotAdvice.style.zIndex = "3";
+    pinBotAdvice.onclick = function() {
+        if (input_buttons) {
+            pinInput.innerText = pinBotAdvice.innerText[0];
+            pinInput1.innerText = pinBotAdvice.innerText[1];
+            pinInput2.innerText = pinBotAdvice.innerText[2];
+            pinInput3.innerText = pinBotAdvice.innerText[3];
+        }
+        else
+        pinInput.value = pinBotAdvice.innerText;
+    };
+    document.body.appendChild(pinBotAdvice);
 
     ws.onmessage = function(e) {
         var msg = e.data.split("|");
@@ -260,9 +349,9 @@ $(document).ready(function() {
     debugElem.innerHTML = "PIN: 0000";
     debugElem.style.color = "#fff";
     debugElem.style.fontSize = "25px";
-    debugElem.style.left = ((sw/2)-(125))+"px";
+    debugElem.style.left = ((sw/2)-(50))+"px";
     debugElem.style.top = ((sh/2)+(175))+"px";
-    debugElem.style.width = (250)+"px";
+    debugElem.style.width = (100)+"px";
     debugElem.style.height = (50)+"px";
     debugElem.style.zIndex = "3";
     debugElem.onclick = function() {
@@ -271,6 +360,55 @@ $(document).ready(function() {
     };
     if (debug)
     document.body.appendChild(debugElem);
+
+    debugElemToggle = document.createElement("i");
+    debugElemToggle.style.position = "fixed";
+    debugElemToggle.className = "fa-solid fa-paperclip";
+    debugElemToggle.style.color = "#fff";
+    debugElemToggle.style.fontSize = "25px";
+    debugElemToggle.style.left = ((sw/2)+(50))+"px";
+    debugElemToggle.style.top = ((sh/2)+(175))+"px";
+    debugElemToggle.style.width = (50)+"px";
+    debugElemToggle.style.height = (50)+"px";
+    debugElemToggle.style.zIndex = "3";
+    debugElemToggle.onclick = function() {
+        if (debugElem.style.display == "none")
+        debugElem.style.display = "initial";
+        else
+        debugElem.style.display = "none";
+    };
+    if (debug)
+    document.body.appendChild(debugElemToggle);
+
+    debugElemBot = document.createElement("i");
+    debugElemBot.style.position = "fixed";
+    debugElemBot.className = "fa-solid fa-robot";
+    debugElemBot.style.color = "#ff0";
+    debugElemBot.style.fontSize = "25px";
+    debugElemBot.style.left = ((sw/2)-(100))+"px";
+    debugElemBot.style.top = ((sh/2)+(175))+"px";
+    debugElemBot.style.width = (50)+"px";
+    debugElemBot.style.height = (50)+"px";
+    debugElemBot.style.zIndex = "3";
+    debugElemBot.onclick = function() {
+        botMove();
+    };
+    if (debug)
+    document.body.appendChild(debugElemBot);
+
+    remoteVideo = document.createElement("video");
+    remoteVideo.style.position = "fixed";
+    remoteVideo.style.backgroundPosition = "center";
+    remoteVideo.style.backgroundSize = "contain";
+    remoteVideo.style.backgroundImage = "initial"
+    remoteVideo.autoplay = true;
+    remoteVideo.style.display = "none";
+    remoteVideo.style.left = ((sw/2)-(100))+"px";
+    remoteVideo.style.top = ((sh/2)+(100))+"px";
+    remoteVideo.style.width = (200)+"px";
+    remoteVideo.style.height = (100)+"px";
+    remoteVideo.style.zIndex = "3";
+    document.body.appendChild(remoteVideo);
 
     statusElem = document.createElement("span");
     statusElem.style.position = "fixed";
@@ -288,7 +426,7 @@ $(document).ready(function() {
     //setupWorld();
 
     $("#title")[0].innerText = "FECHADO";
-    $("*").css("font-family", "Khand");
+    $("*").not("i").css("font-family", "Khand");
 
     $(".result-icon").css({
         "display": "inline-block",
@@ -375,22 +513,77 @@ var readInput_emoji = function(pin) {
     var icons = [
         "<img "+
         "style=\"display:inline-block;width:25px;height:25px;\" "+
-        "class=\"result-icon\" src=\"img/done.png\"/>",
+        "class=\"result-icon\" src=\"img/icons/done.png\"/>",
         "<img "+
         "style=\"display:inline-block;width:25px;height:25px;\" "+
-        "class=\"result-icon\" src=\"img/almost.png\"/>",
+        "class=\"result-icon\" src=\"img/icons/almost.png\"/>",
         "<img "+
         "style=\"display:inline-block;width:25px;height:25px;\" "+
-        "class=\"result-icon\" src=\"img/almost-almost.png\"/>",
+        "class=\"result-icon\" src=\"img/icons/almost-almost.png\"/>",
         "<img "+
         "style=\"display:inline-block;width:25px;height:25px;\" "+
-        "class=\"result-icon\" src=\"img/error.png\"/>"
+        "class=\"result-icon\" src=\"img/icons/error.png\"/>"
+    ];
+    return readInput(pin, icons);
+};
+
+var readInput_icons2 = function(pin) {
+    var icons = [
+        "<img "+
+        "style=\"display:inline-block;width:25px;height:25px;\" "+
+        "class=\"result-icon\" src=\"img/icons2/done.png\"/>",
+        "<img "+
+        "style=\"display:inline-block;width:25px;height:25px;"+
+        "border-radius:50%;\" "+
+        "class=\"result-icon\" src=\"img/icons2/almost.png\"/>",
+        "<img "+
+        "style=\"display:inline-block;width:25px;height:25px;"+
+        "border-radius:50%;\" "+
+        "class=\"result-icon\" src=\"img/icons2/almost-almost.png\"/>",
+        "<img "+
+        "style=\"display:inline-block;width:25px;height:25px;"+
+        "border-radius:50%;\" "+
+        "class=\"result-icon\" src=\"img/icons2/error.png\"/>"
+    ];
+    return readInput(pin, icons);
+};
+
+var readInput_icons3 = function(pin) {
+    var icons = [
+        "<img "+
+        "style=\"display:inline-block;width:25px;height:25px;"+
+        "border-radius:50%;\" "+
+        "class=\"result-icon\" src=\"img/icons3/circle.png\"/>",
+        "<img "+
+        "style=\"display:inline-block;width:25px;height:25px;"+
+        "border-radius:50%;\" "+
+        "class=\"result-icon\" src=\"img/icons3/triangle.png\"/>",
+        "<img "+
+        "style=\"display:inline-block;width:25px;height:25px;"+
+        "border-radius:50%;\" "+
+        "class=\"result-icon\" src=\"img/icons3/square.png\"/>",
+        "<img "+
+        "style=\"display:inline-block;width:25px;height:25px;"+
+        "border-radius:50%;\" "+
+        "class=\"result-icon\" src=\"img/icons3/xmark.png\"/>"
+    ];
+    return readInput(pin, icons);
+};
+
+var readInput_bot = function(pin) {
+    var icons = [
+        "o", "<", ">", "x"
     ];
     return readInput(pin, icons);
 };
 
 // 3527
 // 5317
+
+// 5389
+// 9880
+// <---
+// o---
 
 var readInput = function(pin, icons=result_icons) {
     var output = "";
@@ -430,13 +623,116 @@ var readInput = function(pin, icons=result_icons) {
     for (var n = 0; n < 4-(exact+present+present_far); n++) {
         output += icons[3];
     }
-    console.log(pinCopy.join());
+    //console.log(pinCopy.join());
     return output;
 };
 
 var debugMark = {
     x: -1,
     offsetX: 0
+};
+
+var last_output = "";
+var last_pin = "";
+
+var botMove = function() {
+    var pin = last_pin ? pinBotAdvice.innerText : getPin();
+    last_pin = pinBotAdvice.innerText;
+    if (pin.length < 4) return;
+    var output = readInput_bot(pin);
+
+    if (output.includes("<"))
+    pin = move(pin, 1);
+    else if (output.includes(">"))
+    pin = move(pin, 2);
+    else if (output.includes("x"))
+    pin = change(pin);
+
+    output = readInput_bot(pin);
+
+    console.log(
+       "----- iteration start ----- \n",
+       value(last_output) + " - " + last_output + " - " + last_pin + "\n",
+       value(output) + " - " + readInput_bot(pin) +  " - " + pin
+    );
+
+    console.log(
+       "== " + (last_output && value(output) == value(last_output)) + "\n",
+       "< " + (last_output && value(output) < value(last_output))
+    );
+
+    if (last_output && value(output) == value(last_output))
+    pin = change(pin);
+
+    output = readInput_bot(pin);
+
+    if (last_output && value(output) < value(last_output))
+    pin = last_pin;
+
+    output = readInput_bot(pin);
+
+    console.log(
+       value(last_output) + " - " + last_output + " - " + last_pin + "\n",
+       value(output) + " - " + readInput_bot(pin) +  " - " + pin
+    );
+
+    pinBotAdvice.innerText = pin;
+    pinBotLastAdvice.innerText = 
+    value(last_output) + ">" + value(output) + " - " + last_pin;
+
+    last_output = output;
+};
+
+var botInterval = false;
+var startBot = function() {
+    botInterval = setInterval(function() {
+       botMove();
+       pinInput.value = pinBotAdvice.innerText;
+       pinConfirm.click();
+       if (value(readInput_bot(pinBotAdvice.innerText)) == 12)
+       killBot();
+    }, 1000);
+};
+
+var killBot = function() {
+    clearInterval(botInterval);
+};
+
+var value = function(output) {
+    var replace = output.replaceAll("o", "3");
+    replace = replace.replaceAll("<", "2");
+    replace = replace.replaceAll(">", "1");
+    replace = replace.replaceAll("x", "0");
+    var result = 0;
+    for (var n = 0; n < 4; n++) {
+        result += parseInt(replace[n]);
+    }
+    return result;
+};
+
+var move = function(pin, amt) {
+    var n = Math.floor(Math.random()*4);
+    var dir = n > 1 ? amt*-1 : amt*1;
+    var split = pin.split("");
+    var temp = split[n];
+    split[n] = split[n+dir];
+    split[n+dir] = temp;
+    return split.join("");
+};
+
+var change = function(pin) {
+    var n = Math.floor(Math.random()*4);
+    var rnd = Math.floor(Math.random()*2);
+    var amt = Math.floor(Math.random()*10);
+    var dir = rnd ? amt*1 : amt*-1;
+    //console.log(dir);
+    var split = pin.split("");
+    var temp = parseInt(split[n]);
+    temp = temp + dir;
+    temp = temp < 0 ? temp+10 : temp;
+    temp = temp > 9 ? temp-10 : temp;
+    split[n] = temp;
+    return split.join("");
 };
 
 var timerInterval = false;

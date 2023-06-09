@@ -28,8 +28,8 @@ $script = [
     5 => "script/audio-helper.js",
     6 => "script/mic-helper.js",
     7 => "script/gyro-helper.js",
-    8 => "script/talking-bot.js",
-    9 => "script/origami.js"
+    8 => "script/request-pin.js",
+    9 => "script/talking-bot.js"
 ];
 $module = [
 
