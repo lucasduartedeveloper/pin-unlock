@@ -490,7 +490,7 @@ $(document).ready(function() {
     document.body.appendChild(botHistory);
 
     machine = new PinMachine();
-    pinBot = new PinBot(botHistory, pinBotAdvice);
+    pinBot = new PinBot(botHistory, pinBotAdvice, 5000);
 
     monitorWebsocket();
 });
