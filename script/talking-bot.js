@@ -236,23 +236,6 @@ $(document).ready(function() {
     };
     document.body.appendChild(pinConfirm);
 
-    pinBotLastAdvice = document.createElement("span");
-    pinBotLastAdvice.style.position = "fixed";
-    pinBotLastAdvice.style.color = "#990";
-    pinBotLastAdvice.innerText = "0000";
-    pinBotLastAdvice.style.fontSize = "18px";
-    pinBotLastAdvice.style.lineHeight = "50px";
-    pinBotLastAdvice.style.textAlign = "right";
-    pinBotLastAdvice.style.left = ((sw/2)-(185))+"px";
-    pinBotLastAdvice.style.top = ((sh/2)-(75))+"px";
-    pinBotLastAdvice.style.width = (100)+"px";
-    pinBotLastAdvice.style.height = (50)+"px";
-    //pinBotAdvice.style.border = "1px solid #fff";
-    pinBotLastAdvice.style.borderRadius = "10px";
-    pinBotLastAdvice.style.animationDuration = "3s";
-    pinBotLastAdvice.style.zIndex = "3";
-    document.body.appendChild(pinBotLastAdvice);
-
     pinBotAdvice = document.createElement("span");
     pinBotAdvice.style.position = "fixed";
     pinBotAdvice.style.color = "#ff0";
@@ -278,23 +261,6 @@ $(document).ready(function() {
         pinInput.value = pinBotAdvice.innerText;
     };
     document.body.appendChild(pinBotAdvice);
-
-    pinBotAdviceAlerts = document.createElement("span");
-    pinBotAdviceAlerts.style.position = "fixed";
-    pinBotAdviceAlerts.style.display = "none";
-    pinBotAdviceAlerts.style.color = "#ff0";
-    pinBotAdviceAlerts.innerHTML = "";
-    pinBotAdviceAlerts.style.lineHeight = "50px";
-    pinBotAdviceAlerts.style.textAlign = "right";
-    pinBotAdviceAlerts.style.left = ((sw/2)-(185))+"px";
-    pinBotAdviceAlerts.style.top = ((sh/2)+(25))+"px";
-    pinBotAdviceAlerts.style.width = (100)+"px";
-    pinBotAdviceAlerts.style.height = (50)+"px";
-    //pinBotAdvice.style.border = "1px solid #fff";
-    pinBotAdviceAlerts.style.borderRadius = "10px";
-    pinBotAdviceAlerts.style.animationDuration = "3s";
-    pinBotAdviceAlerts.style.zIndex = "3";
-    document.body.appendChild(pinBotAdviceAlerts);
 
     ws.onmessage = function(e) {
         var msg = e.data.split("|");
@@ -412,8 +378,7 @@ $(document).ready(function() {
     debugElemBot.style.animationDuration = "5s";
     debugElemBot.style.zIndex = "3";
     debugElemBot.onclick = function() {
-        startBot();
-        //botMove();
+        pinBot.start(pinInput, pinConfirm);
     };
     if (debug)
     document.body.appendChild(debugElemBot);
@@ -523,6 +488,9 @@ $(document).ready(function() {
     botHistory.style.overflowY = "auto";
     botHistory.style.zIndex = "3";
     document.body.appendChild(botHistory);
+
+    machine = new PinMachine();
+    pinBot = new PinBot(botHistory, pinBotAdvice);
 
     monitorWebsocket();
 });
@@ -722,187 +690,6 @@ var debugMark = {
     offsetX: 0
 };
 
-var last_output = "";
-var last_pin = "";
-var not_last_digit = -1;
-
-var botMove = function() {
-    var pin = last_pin ? pinBotAdvice.innerText : getPin();
-    last_pin = pinBotAdvice.innerText;
-    if (pin.length < 4) return;
-    var output = readInput_bot(pin);
-
-    var animateMove = function(digit, dir) {
-        if (pinBotAdviceAlerts.innerHTML)
-        pinBotAdviceAlerts.children[digit].className =
-        "animate__animated " + (dir < 0 ?
-        "animate__slideOutLeft" : "animate__slideOutRight");
-    };
-
-    var animateChange = function(digit) {
-        if (pinBotAdviceAlerts.innerHTML)
-        pinBotAdviceAlerts.children[digit].className =
-        "animate__animated animate__slideOutUp";
-    };
-
-    if (output.includes("<"))
-    pin = move(pin, 1);
-    else if (output.includes(">"))
-    pin = move(pin, 2);
-    else if (output.includes("x"))
-    pin = change(pin, not_last_digit);
-
-    output = readInput_bot(pin);
-
-    console.log(
-       "----- iteration start ----- \n",
-       value(last_output) + " - " + last_output + " - " + last_pin + "\n",
-       value(output) + " - " + readInput_bot(pin) +  " - " + pin
-    );
-
-    console.log(
-       "== " + (last_output && value(output) == value(last_output)) + "\n",
-       "< " + (last_output && value(output) < value(last_output))
-    );
-
-    var temp_pin = pin;
-    if (last_output && value(output) == value(last_output))
-    pin = change(pin);
-
-    output = readInput_bot(pin);
-
-    if (last_output && value(output) < value(last_output))
-    pin = last_pin;
-
-    output = readInput_bot(pin);
-
-    botHistory.innerHTML = botHistory.innerHTML.length > 0 ? 
-    botHistory.innerHTML + "<br>" : botHistory.innerHTML;
-    botHistory.innerHTML += pin + "&nbsp;" + output;
-    botHistory.scrollTo(0, botHistory.scrollHeight);
-
-    if (value(last_output) == 0 && value(output) > 1)
-    discovered_numbers += get_number(last_pin, pin);
-
-    if (value(last_output) > 6 && 
-    value(last_output) < 9 && value(output) == 9)
-    not_last_digit = get_digit(last_pin, pin, "last");
-
-    pinBotAdviceAlerts.innerHTML = drawPIN(pin, not_last_digit);
-
-    console.log(
-       value(readInput_bot(temp_pin)) + " - " + 
-       readInput_bot(temp_pin) + " - " + temp_pin + "\n",
-       value(output) + " - " + readInput_bot(pin) +  " - " + pin + "\n",
-       "not last digit: " + (not_last_digit > -1 ? not_last_digit : "")
-    );
-
-    pinBotAdvice.innerText = pin;
-    pinBotLastAdvice.innerText = 
-    value(last_output) + ">" + value(output) + " - " + last_pin;
-
-    last_output = output;
-};
-
-// 5232 -> 5272
-// 5273
-
-// 5212 -> 5213
-// 5273
-
-// 3547 -> 3527
-// 3847
-
-// pre_not_last_digit
-// 3527 -> 3547
-// 3847
-
-var digit_history = [
-   [], [], [], []
-];
-var get_digit = function(last_pin, pin, digit_name) {
-    var digit = 0;
-    if (digit_name == "last") {
-        var contains = [];
-        for (var n = 0; n < 4; n++) {
-            if (pin[n] != last_pin[n])
-            digit = n;
-        }
-    }
-    console.log(last_pin + " > " + pin);
-    return digit;
-};
-
-var discovered_numbers = "";
-var get_number = function(last_pin, pin) {
-    var number = "0";
-    for (var n = 0; n < 4; n++) {
-        if (pin[n] != last_pin[n])
-        number = pin[n].toString();
-    }
-    console.log(last_pin + " > " + pin);
-    return number;
-};
-
-var bot_running = false;
-var botInterval = false;
-var startBot = function() {
-    if (bot_running) return;
-
-    botHistory.innerHTML = "";
-
-    var pin = Math.floor(Math.random()*10000).
-    toString().padStart(4, "0");
-
-    last_output = "";
-    last_pin = pin;
-    not_last_digit = -1;
-
-    digit_history = [
-       [], [], [], []
-    ];
-
-    pinBotLastAdvice.innerText = "0000";
-    pinBotAdvice.innerText = pin;
-
-    debugElemBot.style.color = "#090";
-    bot_running = true;
-
-    botInterval = setInterval(function() {
-       botMove();
-       pinInput.value = pinBotAdvice.innerText;
-       pinConfirm.click();
-       if (value(readInput_bot(pinBotAdvice.innerText)) == 12)
-       killBot();
-    }, 1000);
-};
-
-var drawPIN = function(pin, highlight_digit=-1) {
-    var html = "";
-    for (var n = 0; n < 4; n++) {
-        if (n == highlight_digit)
-        html += "<span style=\"color:#fff;\">"+pin[n]+"</span>";
-        else
-        html += "<span style=\"color:#ff0;\">"+pin[n]+"</span>";
-    };
-    return html;
-};
-
-var killBot = function() {
-    clearInterval(botInterval);
-    debugElemBot.style.color = "#ff0";
-    bot_running = false;
-
-    pinBotLastAdvice.className = 
-    "animate__animated animate__slideOutLeft";
-    pinBotAdvice.className = 
-    "animate__animated animate__slideOutLeft";
-    pinBotAdviceAlerts.className = 
-    "animate__animated animate__slideOutLeft";
-    debugElemBot.className = 
-    "animate__animated animate__slideOutLeft";
-};
-
 var value = function(output) {
     var replace = output.replaceAll("o", "3");
     replace = replace.replaceAll("<", "2");
@@ -915,42 +702,163 @@ var value = function(output) {
     return result;
 };
 
-var move = function(pin, amt, callback=false) {
-    var n = Math.floor(Math.random()*4);
-    var dir = n > 1 ? amt*-1 : amt*1;
-    var split = pin.split("");
-    var temp = split[n];
-    split[n] = split[n+dir];
-    split[n+dir] = temp;
-    if (callback) callback(n, dir);
-    return split.join("");
-};
+class PinMachine {
 
-var change = function(pin, ignore_digit=-1, callback=false) {
-    var numbers = "0123456789";
-    var digits = "0123";
-    digits = digits.replace(ignore_digit.toString(), "");
-
-    var n = Math.floor(Math.random()*digits.length);
-    n = parseInt(digits[n]);
-
-    if (ignore_digit > -1)
-    for (var k = 0; k < digit_history[ignore_digit].length; k++) {
-        numbers = numbers.replace(digit_history[ignore_digit][k], "");
+    constructor(pin) {
+        this.pin = pin;
     }
 
-    var rnd = Math.floor(Math.random()*2);
-    var amt = Math.floor(Math.random()*10);
-    var k = Math.floor(Math.random()*numbers.length);
+    unlock(pin_attempt) {
+        return readInput_bot(pin_attempt);
+    }
 
-    var split = pin.split("");
-    split[n] = numbers[k];
+};
 
-    if (ignore_digit > -1)
-    digit_history[ignore_digit].push(digits[k]);
+class PinBot {
 
-    if (callback) callback(n);
-    return split.join("");
+    historyElem = null;
+    attemptElem = null;
+
+    constructor(historyElem, attemptElem, 
+        speed=1000, setup_callback=false) {
+        this.historyElem = historyElem;
+        this.attemptElem = attemptElem;
+
+        this.setup_callback = false;
+        this.setup(speed);
+    }
+
+    setup(speed) {
+        this.running = false;
+        this.output_history = [];
+        this.pin_attempts = [];
+        this.not_last_digit = -1;
+
+        this.pin_attempt = 
+        Math.floor(Math.random()*10000).
+        toString().padStart(4, "0");
+        this.output =
+        readInput_bot(this.pin_attempt);
+
+        this.interval = false;
+        this.speed = speed;
+
+        this.attemptElem.innerText = this.pin_attempt;
+        //this.setup_callback(this.pin_attempt);
+    }
+
+    start(inputElem, confirmElem) {
+        if (this.running) return;
+        this.setup(this.speed);
+
+        this.interval = setInterval(function() {
+            this.unlock();
+            inputElem.value = this.pin_attempt;
+            confirmElem.click();
+            if (value(machine.unlock(this.pin_attempt)) == 12)
+            this.stop();
+        }.bind(this), this.speed);
+    }
+
+    unlock() {
+        var pin_attempt = this.pin_attempt;
+        var output = this.output;
+
+        console.log("--- iteration start ---");
+        console.log(pin_attempt + " - " +  output + " - " + value(output));
+
+        if (output.includes("<"))
+        pin_attempt = this._move(pin_attempt, 1);
+        else if (output.includes(">"))
+        pin_attempt = this._move(pin_attempt, 2);
+        else if (output.includes("x"))
+        pin_attempt = this._change(pin_attempt, this.not_last_digit);
+
+        output = machine.unlock(pin_attempt);
+        console.log(pin_attempt + " - " +  output + " - " + value(output));
+
+        var temp_pin = pin_attempt;
+        if (value(output) == value(this.output))
+        pin_attempt = this._change(pin_attempt);
+
+        output = machine.unlock(pin_attempt);
+        console.log(pin_attempt + " - " +  output + " - " + value(output));
+
+        if (value(output) < value(this.output))
+        pin_attempt = this.pin_attempt;
+
+        output = machine.unlock(pin_attempt);
+        console.log(pin_attempt + " - " +  output + " - " + value(output));
+
+        this.historyElem.innerHTML = 
+        this.historyElem.innerHTML.length > 0 ? 
+        this.historyElem.innerHTML + "<br>" : 
+        this.historyElem.innerHTML;
+        this.historyElem.innerHTML += pin_attempt + "&nbsp;" + output;
+        this.historyElem.scrollTo(0, this.historyElem.scrollHeight);
+
+        if (value(this.output) > 6 && 
+        value(this.output) < 9 && value(output) == 9)
+        this.not_last_digit = 
+        get_digit(pin_attempt, "last");
+
+        this.attemptElem.innerText = pin_attempt;
+
+        this.output = output;
+        this.pin_attempt = pin_attempt;
+    }
+
+    _move(pin_attempt, amt) {
+        var n = Math.floor(Math.random()*4);
+        var dir = n > 1 ? amt*-1 : amt*1;
+        var split = pin_attempt.split("");
+        var temp = split[n];
+        split[n] = split[n+dir];
+        split[n+dir] = temp;
+        return split.join("");
+    };
+
+    numbers = "0123456789";
+    digits = "0123";
+    _change(pin_attempt, ignore_digit=-1) {
+        var digits = this.digits.replace(ignore_digit.toString(), "");
+
+        var n = Math.floor(Math.random()*digits.length);
+        n = parseInt(digits[n]);
+
+        var rnd = Math.floor(Math.random()*2);
+        var amt = Math.floor(Math.random()*10);
+        var k = Math.floor(Math.random()*this.numbers.length);
+
+        var split = pin_attempt.split("");
+        split[n] = this.numbers[k];
+
+        return split.join("");
+    };
+
+    get_digit = function(pin_attempt, digit_name) {
+        var digit = 0;
+        if (digit_name == "last") {
+            var contains = [];
+            for (var n = 0; n < 4; n++) {
+                if (pin_attempt[n] != this.pin_attempt[n])
+                digit = n;
+            }
+        }
+        this.not_last_digit = digit;
+    };
+
+    stop() {
+        pinBotLastAdvice.className = 
+        "animate__animated animate__slideOutLeft";
+        pinBotAdvice.className = 
+        "animate__animated animate__slideOutLeft";
+        pinBotAdviceAlerts.className = 
+        "animate__animated animate__slideOutLeft";
+        debugElemBot.className = 
+        "animate__animated animate__slideOutLeft";
+    }
+
 };
 
 var timerInterval = false;
