@@ -240,7 +240,7 @@ $(document).ready(function() {
     pinBotLastAdvice.style.position = "fixed";
     pinBotLastAdvice.style.color = "#990";
     pinBotLastAdvice.innerText = "0000";
-    pinBotLastAdvice.fontSize = "25px";
+    pinBotLastAdvice.style.fontSize = "18px";
     pinBotLastAdvice.style.lineHeight = "50px";
     pinBotLastAdvice.style.textAlign = "right";
     pinBotLastAdvice.style.left = ((sw/2)-(185))+"px";
@@ -249,6 +249,7 @@ $(document).ready(function() {
     pinBotLastAdvice.style.height = (50)+"px";
     //pinBotAdvice.style.border = "1px solid #fff";
     pinBotLastAdvice.style.borderRadius = "10px";
+    pinBotLastAdvice.style.animationDuration = "3s";
     pinBotLastAdvice.style.zIndex = "3";
     document.body.appendChild(pinBotLastAdvice);
 
@@ -264,6 +265,7 @@ $(document).ready(function() {
     pinBotAdvice.style.height = (50)+"px";
     //pinBotAdvice.style.border = "1px solid #fff";
     pinBotAdvice.style.borderRadius = "10px";
+    pinBotAdvice.style.animationDuration = "3s";
     pinBotAdvice.style.zIndex = "3";
     pinBotAdvice.onclick = function() {
         if (input_buttons) {
@@ -276,6 +278,23 @@ $(document).ready(function() {
         pinInput.value = pinBotAdvice.innerText;
     };
     document.body.appendChild(pinBotAdvice);
+
+    pinBotAdviceAlerts = document.createElement("span");
+    pinBotAdviceAlerts.style.position = "fixed";
+    pinBotAdviceAlerts.style.display = "none";
+    pinBotAdviceAlerts.style.color = "#ff0";
+    pinBotAdviceAlerts.innerHTML = "";
+    pinBotAdviceAlerts.style.lineHeight = "50px";
+    pinBotAdviceAlerts.style.textAlign = "right";
+    pinBotAdviceAlerts.style.left = ((sw/2)-(185))+"px";
+    pinBotAdviceAlerts.style.top = ((sh/2)+(25))+"px";
+    pinBotAdviceAlerts.style.width = (100)+"px";
+    pinBotAdviceAlerts.style.height = (50)+"px";
+    //pinBotAdvice.style.border = "1px solid #fff";
+    pinBotAdviceAlerts.style.borderRadius = "10px";
+    pinBotAdviceAlerts.style.animationDuration = "3s";
+    pinBotAdviceAlerts.style.zIndex = "3";
+    document.body.appendChild(pinBotAdviceAlerts);
 
     ws.onmessage = function(e) {
         var msg = e.data.split("|");
@@ -380,15 +399,17 @@ $(document).ready(function() {
     if (debug)
     document.body.appendChild(debugElemToggle);
 
-    debugElemBot = document.createElement("i");
+    debugElemBot = document.createElement("img");
     debugElemBot.style.position = "fixed";
+    debugElemBot.src = "img/bot-icon.png";
     debugElemBot.className = "fa-solid fa-robot";
     debugElemBot.style.color = "#ff0";
     debugElemBot.style.fontSize = "25px";
-    debugElemBot.style.left = ((sw/2)-(100))+"px";
+    debugElemBot.style.left = ((sw/2)-(90))+"px";
     debugElemBot.style.top = ((sh/2)+(175))+"px";
-    debugElemBot.style.width = (50)+"px";
-    debugElemBot.style.height = (50)+"px";
+    debugElemBot.style.width = (30)+"px";
+    debugElemBot.style.height = (30)+"px";
+    debugElemBot.style.animationDuration = "5s";
     debugElemBot.style.zIndex = "3";
     debugElemBot.onclick = function() {
         startBot();
@@ -396,6 +417,30 @@ $(document).ready(function() {
     };
     if (debug)
     document.body.appendChild(debugElemBot);
+
+    debugElemBotKeyboard = document.createElement("img");
+    debugElemBotKeyboard.style.position = "fixed";
+    debugElemBotKeyboard.src = "img/keyboard.png";
+    debugElemBotKeyboard.className = "fa-solid fa-robot";
+    debugElemBotKeyboard.style.color = "#ff0";
+    debugElemBotKeyboard.style.fontSize = "25px";
+    debugElemBotKeyboard.style.left = ((sw/2)-(100))+"px";
+    debugElemBotKeyboard.style.top = ((sh/2)+(205))+"px";
+    debugElemBotKeyboard.style.width = (50)+"px";
+    debugElemBotKeyboard.style.height = (50)+"px";
+    debugElemBotKeyboard.style.animationDuration = "5s";
+    debugElemBotKeyboard.style.transform = "rotateZ(180deg)";
+    debugElemBotKeyboard.style.zIndex = "3";
+    debugElemBotKeyboard.onclick = function() {
+         if (botHistory.style.display == "none") {
+             botHistory.style.display = "initial";
+         }
+         else {
+             botHistory.style.display = "none";
+         }
+    };
+    if (debug)
+    document.body.appendChild(debugElemBotKeyboard);
 
     remoteVideo = document.createElement("video");
     remoteVideo.style.position = "fixed";
@@ -426,6 +471,33 @@ $(document).ready(function() {
 
     //setupWorld();
 
+    invert = false;
+    invertBtn = document.createElement("span");
+    invertBtn.style.position = "fixed";
+    invertBtn.innerHTML = "0101";
+    invertBtn.style.color = "#fff";
+    invertBtn.style.fontSize = "18px";
+    invertBtn.style.left = ((sw/2)-(50))+"px";
+    invertBtn.style.top = ((sh/2)+(225))+"px";
+    invertBtn.style.width = (100)+"px";
+    invertBtn.style.height = (50)+"px";
+    invertBtn.style.zIndex = "3";
+    invertBtn.onclick = function() {
+        invert = !invert;
+        if (invert) {
+            invertBtn.innerHTML = "1010";
+            $("*").not("html,body,img,#pin-output").css("filter","invert(100%)");
+            $("html,body").css("background", "#fff");
+        }
+        else {
+            invertBtn.innerHTML = "0101";
+            $("*").not("html,body,img,#pin-output").css("filter","invert(0%)");
+            $("html,body").css("background", "#000");
+        }
+    };
+    if (debug)
+    document.body.appendChild(invertBtn);
+
     $("#title")[0].innerText = "FECHADO";
     $("*").not("i").css("font-family", "Khand");
 
@@ -434,6 +506,23 @@ $(document).ready(function() {
         "width": "25px",
         "height": "25px"
     });
+
+    botHistory = document.createElement("span");
+    botHistory.style.position = "fixed";
+    botHistory.style.display = "none";
+    botHistory.style.fontFamily = "courier, courier new, sans-serif";
+    botHistory.innerHTML = "";
+    botHistory.style.textAlign = "left";
+    botHistory.style.fontSize = "15px";
+    botHistory.style.background = "#fff";
+    botHistory.style.color = "#000";
+    botHistory.style.left = ((sw/2)-125)+"px";
+    botHistory.style.top = ((sh/2)-135)+"px";
+    botHistory.style.width = (100)+"px";
+    botHistory.style.height = (300)+"px";
+    botHistory.style.overflowY = "auto";
+    botHistory.style.zIndex = "3";
+    document.body.appendChild(botHistory);
 
     monitorWebsocket();
 });
@@ -635,7 +724,7 @@ var debugMark = {
 
 var last_output = "";
 var last_pin = "";
-var last_digit = -1;
+var not_last_digit = -1;
 
 var botMove = function() {
     var pin = last_pin ? pinBotAdvice.innerText : getPin();
@@ -643,12 +732,25 @@ var botMove = function() {
     if (pin.length < 4) return;
     var output = readInput_bot(pin);
 
+    var animateMove = function(digit, dir) {
+        if (pinBotAdviceAlerts.innerHTML)
+        pinBotAdviceAlerts.children[digit].className =
+        "animate__animated " + (dir < 0 ?
+        "animate__slideOutLeft" : "animate__slideOutRight");
+    };
+
+    var animateChange = function(digit) {
+        if (pinBotAdviceAlerts.innerHTML)
+        pinBotAdviceAlerts.children[digit].className =
+        "animate__animated animate__slideOutUp";
+    };
+
     if (output.includes("<"))
     pin = move(pin, 1);
     else if (output.includes(">"))
     pin = move(pin, 2);
     else if (output.includes("x"))
-    pin = change(pin, last_digit);
+    pin = change(pin, not_last_digit);
 
     output = readInput_bot(pin);
 
@@ -663,6 +765,7 @@ var botMove = function() {
        "< " + (last_output && value(output) < value(last_output))
     );
 
+    var temp_pin = pin;
     if (last_output && value(output) == value(last_output))
     pin = change(pin);
 
@@ -673,14 +776,26 @@ var botMove = function() {
 
     output = readInput_bot(pin);
 
-    console.log(
-       value(last_output) + " - " + last_output + " - " + last_pin + "\n",
-       value(output) + " - " + readInput_bot(pin) +  " - " + pin
-    );
+    botHistory.innerHTML = botHistory.innerHTML.length > 0 ? 
+    botHistory.innerHTML + "<br>" : botHistory.innerHTML;
+    botHistory.innerHTML += pin + "&nbsp;" + output;
+    botHistory.scrollTo(0, botHistory.scrollHeight);
 
-    if (value(last_output) > 5 && 
+    if (value(last_output) == 0 && value(output) > 1)
+    discovered_numbers += get_number(last_pin, pin);
+
+    if (value(last_output) > 6 && 
     value(last_output) < 9 && value(output) == 9)
-    last_digit = get_digit(last_pin, pin, "last");
+    not_last_digit = get_digit(last_pin, pin, "last");
+
+    pinBotAdviceAlerts.innerHTML = drawPIN(pin, not_last_digit);
+
+    console.log(
+       value(readInput_bot(temp_pin)) + " - " + 
+       readInput_bot(temp_pin) + " - " + temp_pin + "\n",
+       value(output) + " - " + readInput_bot(pin) +  " - " + pin + "\n",
+       "not last digit: " + (not_last_digit > -1 ? not_last_digit : "")
+    );
 
     pinBotAdvice.innerText = pin;
     pinBotLastAdvice.innerText = 
@@ -695,6 +810,16 @@ var botMove = function() {
 // 5212 -> 5213
 // 5273
 
+// 3547 -> 3527
+// 3847
+
+// pre_not_last_digit
+// 3527 -> 3547
+// 3847
+
+var digit_history = [
+   [], [], [], []
+];
 var get_digit = function(last_pin, pin, digit_name) {
     var digit = 0;
     if (digit_name == "last") {
@@ -704,7 +829,19 @@ var get_digit = function(last_pin, pin, digit_name) {
             digit = n;
         }
     }
+    console.log(last_pin + " > " + pin);
     return digit;
+};
+
+var discovered_numbers = "";
+var get_number = function(last_pin, pin) {
+    var number = "0";
+    for (var n = 0; n < 4; n++) {
+        if (pin[n] != last_pin[n])
+        number = pin[n].toString();
+    }
+    console.log(last_pin + " > " + pin);
+    return number;
 };
 
 var bot_running = false;
@@ -712,12 +849,18 @@ var botInterval = false;
 var startBot = function() {
     if (bot_running) return;
 
+    botHistory.innerHTML = "";
+
     var pin = Math.floor(Math.random()*10000).
     toString().padStart(4, "0");
 
     last_output = "";
-    last_pin = "";
-    last_digit = -1;
+    last_pin = pin;
+    not_last_digit = -1;
+
+    digit_history = [
+       [], [], [], []
+    ];
 
     pinBotLastAdvice.innerText = "0000";
     pinBotAdvice.innerText = pin;
@@ -734,10 +877,30 @@ var startBot = function() {
     }, 1000);
 };
 
+var drawPIN = function(pin, highlight_digit=-1) {
+    var html = "";
+    for (var n = 0; n < 4; n++) {
+        if (n == highlight_digit)
+        html += "<span style=\"color:#fff;\">"+pin[n]+"</span>";
+        else
+        html += "<span style=\"color:#ff0;\">"+pin[n]+"</span>";
+    };
+    return html;
+};
+
 var killBot = function() {
     clearInterval(botInterval);
     debugElemBot.style.color = "#ff0";
     bot_running = false;
+
+    pinBotLastAdvice.className = 
+    "animate__animated animate__slideOutLeft";
+    pinBotAdvice.className = 
+    "animate__animated animate__slideOutLeft";
+    pinBotAdviceAlerts.className = 
+    "animate__animated animate__slideOutLeft";
+    debugElemBot.className = 
+    "animate__animated animate__slideOutLeft";
 };
 
 var value = function(output) {
@@ -752,28 +915,41 @@ var value = function(output) {
     return result;
 };
 
-var move = function(pin, amt) {
+var move = function(pin, amt, callback=false) {
     var n = Math.floor(Math.random()*4);
     var dir = n > 1 ? amt*-1 : amt*1;
     var split = pin.split("");
     var temp = split[n];
     split[n] = split[n+dir];
     split[n+dir] = temp;
+    if (callback) callback(n, dir);
     return split.join("");
 };
 
-var change = function(pin, digit=-1) {
-    var n = digit > 0 ? digit : Math.floor(Math.random()*4);
+var change = function(pin, ignore_digit=-1, callback=false) {
+    var numbers = "0123456789";
+    var digits = "0123";
+    digits = digits.replace(ignore_digit.toString(), "");
+
+    var n = Math.floor(Math.random()*digits.length);
+    n = parseInt(digits[n]);
+
+    if (ignore_digit > -1)
+    for (var k = 0; k < digit_history[ignore_digit].length; k++) {
+        numbers = numbers.replace(digit_history[ignore_digit][k], "");
+    }
+
     var rnd = Math.floor(Math.random()*2);
     var amt = Math.floor(Math.random()*10);
-    var dir = rnd ? amt*1 : amt*-1;
-    //console.log(dir);
+    var k = Math.floor(Math.random()*numbers.length);
+
     var split = pin.split("");
-    var temp = parseInt(split[n]);
-    temp = temp + dir;
-    temp = temp < 0 ? temp+10 : temp;
-    temp = temp > 9 ? temp-10 : temp;
-    split[n] = temp;
+    split[n] = numbers[k];
+
+    if (ignore_digit > -1)
+    digit_history[ignore_digit].push(digits[k]);
+
+    if (callback) callback(n);
     return split.join("");
 };
 

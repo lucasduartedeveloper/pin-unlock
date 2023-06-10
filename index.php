@@ -1,6 +1,6 @@
 <!-- PHP: Script  -->
 <?php
-session_start();
+//session_start();
 $maxlifetime = ini_get("session.gc_maxlifetime");
 echo "<!-- session.gc_maxlifetime: ".$maxlifetime ." -->";
 
