@@ -481,9 +481,9 @@ $(document).ready(function() {
     botHistory.style.fontSize = "15px";
     botHistory.style.background = "#fff";
     botHistory.style.color = "#000";
-    botHistory.style.left = ((sw/2)-125)+"px";
+    botHistory.style.left = ((sw/2)-140)+"px";
     botHistory.style.top = ((sh/2)-135)+"px";
-    botHistory.style.width = (100)+"px";
+    botHistory.style.width = (130)+"px";
     botHistory.style.height = (300)+"px";
     botHistory.style.overflowY = "auto";
     botHistory.style.zIndex = "3";
@@ -765,42 +765,60 @@ class PinBot {
         var output = this.output;
 
         console.log("--- iteration start ---");
-        console.log(pin_attempt + " - " +  output + " - " + value(output));
+        console.log(pin_attempt + " - " + output + " - " + 
+        value(output) + " - previous");
 
+        var move = null;
         if (output.includes("<"))
-        pin_attempt = this._move(pin_attempt, 1);
+        move = this._move(pin_attempt, 1);
         else if (output.includes(">"))
-        pin_attempt = this._move(pin_attempt, 2);
+        move = this._move(pin_attempt, 2);
         else if (output.includes("x"))
-        pin_attempt = this._change(pin_attempt, this.not_last_digit);
+        move = this._change(pin_attempt, this.not_last_digit);
+        pin_attempt = move.result;
 
         output = machine.unlock(pin_attempt);
-        console.log(pin_attempt + " - " +  output + " - " + value(output));
+        console.log(pin_attempt + " - " + output + " - " + 
+        value(output) + " - " + move.info);
 
         var temp_pin = pin_attempt;
-        if (value(output) == value(this.output))
-        pin_attempt = this._change(pin_attempt);
+        var unchanged_value = (value(output) == value(this.output));
+        var decreased_value = (value(output) < value(this.output));
+
+        if (unchanged_value)
+        move = this._change(pin_attempt);
+        pin_attempt = move.result;
+
+        var info = unchanged_value ? "no signal" : "ok";
 
         output = machine.unlock(pin_attempt);
-        console.log(pin_attempt + " - " +  output + " - " + value(output));
+        console.log(pin_attempt + " - " + output + " - " + 
+        value(output) + " - " + move.info + " - " + info);
 
-        if (value(output) < value(this.output))
+        if (decreased_value)
         pin_attempt = this.pin_attempt;
 
         output = machine.unlock(pin_attempt);
-        console.log(pin_attempt + " - " +  output + " - " + value(output));
+        console.log(pin_attempt + " - " + output + " - " + 
+        value(output) + " - best");
+
+        decreased_value = (value(output) < value(this.output));
 
         this.historyElem.innerHTML = 
         this.historyElem.innerHTML.length > 0 ? 
         this.historyElem.innerHTML + "<br>" : 
         this.historyElem.innerHTML;
-        this.historyElem.innerHTML += pin_attempt + "&nbsp;" + output;
+        this.historyElem.innerHTML += 
+        "<span " + (decreased_value ? "style=\"color:red;\">" : ">") + 
+        pin_attempt + "&nbsp;" + 
+        output + "&nbsp;" + value(output) + 
+        "</span>";
         this.historyElem.scrollTo(0, this.historyElem.scrollHeight);
 
         if (value(this.output) > 6 && 
         value(this.output) < 9 && value(output) == 9)
         this.not_last_digit = 
-        get_digit(pin_attempt, "last");
+        this.get_digit(pin_attempt, "last");
 
         this.attemptElem.innerText = pin_attempt;
 
@@ -813,9 +831,14 @@ class PinBot {
         var dir = n > 1 ? amt*-1 : amt*1;
         var split = pin_attempt.split("");
         var temp = split[n];
+        var temp2 = split[n+dir];
         split[n] = split[n+dir];
         split[n+dir] = temp;
-        return split.join("");
+        var obj = {
+            info: "[" + temp + ", " + temp2 + "]",
+            result: split.join("")
+        };
+        return obj;
     };
 
     numbers = "0123456789";
@@ -831,9 +854,15 @@ class PinBot {
         var k = Math.floor(Math.random()*this.numbers.length);
 
         var split = pin_attempt.split("");
+        var temp = split[n];
+        var temp2 = this.numbers[k];
         split[n] = this.numbers[k];
 
-        return split.join("");
+        var obj = {
+            info: "[" + temp + ", " + temp2 + "]",
+            result: split.join("")
+        };
+        return obj;
     };
 
     get_digit = function(pin_attempt, digit_name) {
@@ -849,6 +878,10 @@ class PinBot {
     };
 
     stop() {
+        this.running = false;
+        clearInterval(this.interval);
+        return;
+
         pinBotLastAdvice.className = 
         "animate__animated animate__slideOutLeft";
         pinBotAdvice.className = 
