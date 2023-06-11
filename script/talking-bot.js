@@ -216,6 +216,7 @@ $(document).ready(function() {
                 JSON.stringify(remoteObj));
 
                 updateScreen();
+                remoteObj.mistakes = 0;
             }
             else {
                 remoteObj.mistakes += 1;
@@ -233,6 +234,7 @@ $(document).ready(function() {
 
             updateScreen();
         }
+        pinBot.log(pin);
     };
     document.body.appendChild(pinConfirm);
 
@@ -340,7 +342,9 @@ $(document).ready(function() {
     debugElem.style.height = (50)+"px";
     debugElem.style.zIndex = "3";
     debugElem.onclick = function() {
-        remoteObj.pin = prompt();
+        var pin = prompt();
+        if (pin == null || pin.length < 4) return;
+        remoteObj.pin = pin;
         updateScreen();
     };
     if (debug)
@@ -490,7 +494,7 @@ $(document).ready(function() {
     document.body.appendChild(botHistory);
 
     machine = new PinMachine();
-    pinBot = new PinBot(botHistory, pinBotAdvice, 5000);
+    pinBot = new PinBot(botHistory, pinBotAdvice, 1000);
 
     monitorWebsocket();
 });
@@ -749,6 +753,9 @@ class PinBot {
 
     start(inputElem, confirmElem) {
         if (this.running) return;
+        this.running = true;
+
+        this.historyElem.innerHTML = "";
         this.setup(this.speed);
 
         this.interval = setInterval(function() {
@@ -783,7 +790,6 @@ class PinBot {
 
         var temp_pin = pin_attempt;
         var unchanged_value = (value(output) == value(this.output));
-        var decreased_value = (value(output) < value(this.output));
 
         if (unchanged_value)
         move = this._change(pin_attempt);
@@ -795,6 +801,8 @@ class PinBot {
         console.log(pin_attempt + " - " + output + " - " + 
         value(output) + " - " + move.info + " - " + info);
 
+        var decreased_value = (value(output) < value(this.output));
+
         if (decreased_value)
         pin_attempt = this.pin_attempt;
 
@@ -802,18 +810,19 @@ class PinBot {
         console.log(pin_attempt + " - " + output + " - " + 
         value(output) + " - best");
 
-        decreased_value = (value(output) < value(this.output));
+        var unchanged_pin = (pin_attempt == this.pin_attempt);
 
         this.historyElem.innerHTML = 
         this.historyElem.innerHTML.length > 0 ? 
         this.historyElem.innerHTML + "<br>" : 
         this.historyElem.innerHTML;
         this.historyElem.innerHTML += 
-        "<span " + (decreased_value ? "style=\"color:red;\">" : ">") + 
+        "<span " + (unchanged_pin ? "style=\"color:red;\">" : ">") + 
         pin_attempt + "&nbsp;" + 
         output + "&nbsp;" + value(output) + 
         "</span>";
         this.historyElem.scrollTo(0, this.historyElem.scrollHeight);
+        console.log(output);
 
         if (value(this.output) > 6 && 
         value(this.output) < 9 && value(output) == 9)
@@ -824,6 +833,8 @@ class PinBot {
 
         this.output = output;
         this.pin_attempt = pin_attempt;
+
+        this.pin_attempts.push(pin_attempt);
     }
 
     _move(pin_attempt, amt) {
@@ -890,6 +901,33 @@ class PinBot {
         "animate__animated animate__slideOutLeft";
         debugElemBot.className = 
         "animate__animated animate__slideOutLeft";
+    }
+
+    log(pin_attempt) {
+        if (this.running) return;
+        var n = this.pin_attempts.indexOf(pin_attempt);
+        if (n > -1)
+        location.href = "about:blank";
+
+        var output = machine.unlock(pin_attempt);
+        var unchanged_pin = (pin_attempt == this.pin_attempt);
+
+        this.historyElem.innerHTML = 
+        this.historyElem.innerHTML.length > 0 ? 
+        this.historyElem.innerHTML + "<br>" : 
+        this.historyElem.innerHTML;
+        this.historyElem.innerHTML += 
+        "<span " + (unchanged_pin ? "style=\"color:red;\">" : ">") + 
+        pin_attempt + "&nbsp;" + 
+        output + "&nbsp;" + value(output) + 
+        "</span>";
+        this.historyElem.scrollTo(0, this.historyElem.scrollHeight);
+        console.log(output);
+
+        this.pin_attempt = pin_attempt;
+        this.output = machine.unlock(pin_attempt);
+
+        this.pin_attempts.push(pin_attempt);
     }
 
 };
