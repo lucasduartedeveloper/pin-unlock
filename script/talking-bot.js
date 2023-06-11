@@ -400,10 +400,10 @@ $(document).ready(function() {
     if (debug)
     document.body.appendChild(debugElemBot);
 
-    var bot_unlockCount = 100;
+    var bot_unlockCount = 0;
     debugElemCount = document.createElement("span");
     debugElemCount.style.position = "fixed";
-    debugElemCount.innerText = "100";
+    debugElemCount.innerText = "0";
     debugElemCount.style.textAlign = "center";
     debugElemCount.style.color = "#fff";
     debugElemCount.style.fontSize = "20px";
@@ -821,7 +821,7 @@ class PinBot {
     }
 
     start(inputElem, confirmElem) {
-        if (this.running) return;
+        if (this.count == 0 || this.running) return;
 
         this.historyElem.innerHTML = "";
         this.setup(this.speed);
