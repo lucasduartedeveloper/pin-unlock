@@ -766,10 +766,11 @@ class PinBot {
 
     start(inputElem, confirmElem) {
         if (this.running) return;
-        this.running = true;
 
         this.historyElem.innerHTML = "";
         this.setup(this.speed);
+
+        this.running = true;
 
         this.interval = setInterval(function() {
             this.unlock();
