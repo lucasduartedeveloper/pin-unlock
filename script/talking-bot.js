@@ -418,7 +418,7 @@ $(document).ready(function() {
         if (count != null) {
             count = parseInt(count);
             bot_unlockCount = count;
-            pinBot.count = 100;
+            pinBot.count = bot_unlockCount;
             debugElemCount.innerText = bot_unlockCount;
         }
     };
@@ -837,8 +837,8 @@ class PinBot {
                 this.unlock_history.push(this.pin_attempts.length);
                 this.stop();
                 this.count -= 1;
+                this.countElem.innerText = this.count;
                 if (this.count > 0) {
-                    this.countElem.innerText = this.count;
                     confirmElem.click();
                     this.start(inputElem, confirmElem);
                 }
