@@ -400,6 +400,54 @@ $(document).ready(function() {
     if (debug)
     document.body.appendChild(debugElemBot);
 
+    var bot_unlockCount = 100;
+    debugElemCount = document.createElement("span");
+    debugElemCount.style.position = "fixed";
+    debugElemCount.innerText = "100";
+    debugElemCount.style.textAlign = "center";
+    debugElemCount.style.color = "#fff";
+    debugElemCount.style.fontSize = "20px";
+    debugElemCount.style.left = ((sw/2)-(140))+"px";
+    debugElemCount.style.top = ((sh/2)+(175))+"px";
+    debugElemCount.style.width = (50)+"px";
+    debugElemCount.style.height = (30)+"px";
+    debugElemCount.style.animationDuration = "5s";
+    debugElemCount.style.zIndex = "3";
+    debugElemCount.onclick = function() {
+        var count = prompt();
+        if (count != null) {
+            count = parseInt(count);
+            bot_unlockCount = count;
+            pinBot.count = 100;
+            debugElemCount.innerText = bot_unlockCount;
+        }
+    };
+    if (debug)
+    document.body.appendChild(debugElemCount);
+
+    var bot_unlockSpeed = 1;
+    debugElemSpeed = document.createElement("span");
+    debugElemSpeed.style.position = "fixed";
+    debugElemSpeed.innerText = "1x";
+    debugElemSpeed.style.textAlign = "center";
+    debugElemSpeed.style.color = "#fff";
+    debugElemSpeed.style.fontSize = "20px";
+    debugElemSpeed.style.left = ((sw/2)-(140))+"px";
+    debugElemSpeed.style.top = ((sh/2)+(205))+"px";
+    debugElemSpeed.style.width = (50)+"px";
+    debugElemSpeed.style.height = (30)+"px";
+    debugElemSpeed.style.animationDuration = "5s";
+    debugElemSpeed.style.zIndex = "3";
+    debugElemSpeed.onclick = function() {
+        var speed = Math.floor(bot_unlockSpeed + 1);
+        speed = speed > 8 ? 0.5 : speed;
+        bot_unlockSpeed = speed;
+        pinBot.speed = bot_unlockSpeed;
+        debugElemSpeed.innerText = bot_unlockSpeed+"x";
+    };
+    if (debug)
+    document.body.appendChild(debugElemSpeed);
+
     debugElemBotKeyboard = document.createElement("img");
     debugElemBotKeyboard.style.position = "fixed";
     debugElemBotKeyboard.src = "img/keyboard.png";
@@ -508,6 +556,7 @@ $(document).ready(function() {
 
     machine = new PinMachine();
     pinBot = new PinBot(botHistory, pinBotAdvice, 1000);
+    pinBot.countElem = debugElemCount;
 
     monitorWebsocket();
 });
@@ -739,17 +788,19 @@ class PinBot {
     historyElem = null;
     attemptElem = null;
 
-    constructor(historyElem, attemptElem, 
-        speed=1000, setup_callback=false) {
+    constructor(historyElem, attemptElem, setup_callback=false) {
         this.historyElem = historyElem;
         this.attemptElem = attemptElem;
 
         this.setup_callback = false;
-        this.setup(speed);
+        this.setup(1);
+        this.count = 100;
     }
 
     setup(speed) {
         this.running = false;
+        this.unlock_history = [];
+
         this.output_history = [];
         this.pin_attempts = [];
 
@@ -782,9 +833,17 @@ class PinBot {
             this.unlock();
             inputElem.value = this.pin_attempt;
             confirmElem.click();
-            if (value(machine.unlock(this.pin_attempt)) == 12)
-            this.stop();
-        }.bind(this), this.speed);
+            if (value(machine.unlock(this.pin_attempt)) == 12) {
+                this.unlock_history.push(this.pin_attempts.length);
+                this.stop();
+                this.count -= 1;
+                if (this.count > 0) {
+                    this.countElem.innerText = this.count;
+                    confirmElem.click();
+                    this.start(inputElem, confirmElem);
+                }
+            }
+        }.bind(this), (1000/this.speed));
     }
 
     unlock() {
@@ -824,7 +883,17 @@ class PinBot {
         value(output) + " - " + move.info + " - " + info);
 
         var decreased_value = (value(output) < value(this.output));
+        if (decreased_value)
+        pin_attempt = this._noduplicate(pin_attempt);
 
+        output = machine.unlock(pin_attempt);
+        unchanged_value = (value(output) == value(temp_output));
+        var info = unchanged_value ? "no signal" : "ok";
+
+        console.log(pin_attempt + " - " + output + " - " + 
+        value(output) + " - " + move.info + " - " + info);
+
+        decreased_value = (value(output) < value(this.output));
         if (decreased_value)
         pin_attempt = this.pin_attempt;
 
@@ -928,6 +997,34 @@ class PinBot {
         this.get_digit(pin_attempt, pin_attempt2, "last");
     };
 
+    _noduplicate = function(pin_attempt) {
+        var duplicate = "";
+        var duplicateIndex = -1;
+        for (var n = 0; n < pin_attempt.length; n++) {
+            for (var k = 0; k < pin_attempt.length; k++) {
+                 if (pin_attempt[n] == pin_attempt[k] && n != k) {
+                     duplicate = pin_attempt[n];
+                     duplicateIndex = n;
+                     break;
+                 }
+            }
+        }
+        if (duplicateIndex < 0)
+        return pin_attempt;
+
+        var numbers = this.numbers.replace(duplicate, "");
+        var n = Math.floor(Math.random()*numbers.length);
+
+        var temp_pin = pin_attempt.replace(duplicate, numbers[n]);
+        temp_pin = temp_pin.replace(duplicate, numbers[n]);
+        temp_pin = temp_pin.split("");
+        var temp_pin2 = pin_attempt.split("");
+        temp_pin[duplicateIndex] = temp_pin2[duplicateIndex];
+        pin_attempt = temp_pin.join("");
+
+        return pin_attempt;
+    };
+
     _refilter = function(output) {
         var output_pairs = [
             [ "oxxx", "xxxx" ],
@@ -1001,7 +1098,8 @@ class PinBot {
         this.historyElem.style.display = "initial";
 
         var output = machine.unlock(pin_attempt);
-        var unchanged_pin = (pin_attempt == this.pin_attempt);
+        var unchanged_pin = this.pin_attempts.length > 0 && 
+        (pin_attempt == this.pin_attempt);
 
         this.historyElem.innerHTML = 
         this.historyElem.innerHTML.length > 0 ? 
