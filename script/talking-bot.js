@@ -794,7 +794,7 @@ class PinBot {
 
         this.setup_callback = false;
         this.setup(1);
-        this.count = 100;
+        this.count = 0;
     }
 
     setup(speed) {
