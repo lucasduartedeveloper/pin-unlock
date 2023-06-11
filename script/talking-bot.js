@@ -51,7 +51,7 @@ var updateScreen = function(remote=false) {
     if (remoteObj.locked) {
         stopTimer();
         $("#title")[0].innerText = remote ? 
-        "FFECHADO" : "FECHADO";
+        "•FECHADO" : "FECHADO";
         //content.style.display = "none";
         //renderer.domElement.style.display = "none";
         remoteVideo.style.display = "none";
@@ -60,7 +60,7 @@ var updateScreen = function(remote=false) {
     else {
         startTimer();
         $("#title")[0].innerText = remote ? 
-        "AABERTO" : "ABERTO";
+        "•ABERTO" : "ABERTO";
         //content.style.display = "initial";
         //renderer.domElement.style.display = "initial";
         remoteVideo.src = remoteObj.hls_source;
@@ -81,6 +81,10 @@ var updateScreen = function(remote=false) {
     else {
         mistakeCount.innerText = "";
     }
+
+    if (debugElem.masked)
+    debugElem.innerHTML = "PIN: ••••";
+    else
     debugElem.innerHTML = "PIN: "+remoteObj.pin;
     /*circle.className = remoteObj.locked ? 
     "fa-solid fa-mars" : "fa-solid fa-venus";*/
@@ -333,19 +337,30 @@ $(document).ready(function() {
 
     debugElem = document.createElement("span");
     debugElem.style.position = "fixed";
-    debugElem.innerHTML = "PIN: 0000";
+    debugElem.innerHTML = "PIN: ••••";
     debugElem.style.color = "#fff";
     debugElem.style.fontSize = "25px";
     debugElem.style.left = ((sw/2)-(50))+"px";
     debugElem.style.top = ((sh/2)+(175))+"px";
     debugElem.style.width = (100)+"px";
     debugElem.style.height = (50)+"px";
+    debugElem.masked = true;
+    debugElem.pointerTime = new Date().getTime();
     debugElem.style.zIndex = "3";
-    debugElem.onclick = function() {
-        var pin = prompt();
-        if (pin == null || pin.length < 4) return;
-        remoteObj.pin = pin;
-        updateScreen();
+    debugElem.onpointerdown = function() {
+        this.pointerTime = new Date().getTime();
+    };
+    debugElem.onpointerup = function() {
+        var interval = new Date().getTime() - this.pointerTime;
+        if (interval < 2000) {
+            var pin = prompt();
+            if (pin == null || pin.length < 4) return;
+            remoteObj.pin = pin;
+            updateScreen();
+        }
+        else {
+            requestPIN();
+        }
     };
     if (debug)
     document.body.appendChild(debugElem);
@@ -361,10 +376,8 @@ $(document).ready(function() {
     debugElemToggle.style.height = (50)+"px";
     debugElemToggle.style.zIndex = "3";
     debugElemToggle.onclick = function() {
-        if (debugElem.style.display == "none")
-        debugElem.style.display = "initial";
-        else
-        debugElem.style.display = "none";
+        debugElem.masked = !debugElem.masked;
+        updateScreen();
     };
     if (debug)
     document.body.appendChild(debugElemToggle);
@@ -818,11 +831,9 @@ class PinBot {
         this.historyElem.innerHTML;
         this.historyElem.innerHTML += 
         "<span " + (unchanged_pin ? "style=\"color:red;\">" : ">") + 
-        pin_attempt + "&nbsp;" + 
-        output + "&nbsp;" + value(output) + 
+        pin_attempt + " " + escapeHtml(output) + " " + value(output) + 
         "</span>";
         this.historyElem.scrollTo(0, this.historyElem.scrollHeight);
-        console.log(output);
 
         if (value(this.output) > 6 && 
         value(this.output) < 9 && value(output) == 9)
@@ -907,7 +918,7 @@ class PinBot {
         if (this.running) return;
         var n = this.pin_attempts.indexOf(pin_attempt);
         if (n > -1)
-        location.href = "about:blank";
+        this.historyElem.style.display = "initial";
 
         var output = machine.unlock(pin_attempt);
         var unchanged_pin = (pin_attempt == this.pin_attempt);
@@ -917,12 +928,10 @@ class PinBot {
         this.historyElem.innerHTML + "<br>" : 
         this.historyElem.innerHTML;
         this.historyElem.innerHTML += 
-        "<span " + (unchanged_pin ? "style=\"color:red;\">" : ">") + 
-        pin_attempt + "&nbsp;" + 
-        output + "&nbsp;" + value(output) + 
+        "<span" + (unchanged_pin ? " style=\"color:red;\">" : ">") + 
+        pin_attempt + " " + escapeHtml(output) + " " + value(output) + 
         "</span>";
         this.historyElem.scrollTo(0, this.historyElem.scrollHeight);
-        console.log(output);
 
         this.pin_attempt = pin_attempt;
         this.output = machine.unlock(pin_attempt);
@@ -930,6 +939,15 @@ class PinBot {
         this.pin_attempts.push(pin_attempt);
     }
 
+};
+
+var escapeHtml = function(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
 };
 
 var timerInterval = false;
