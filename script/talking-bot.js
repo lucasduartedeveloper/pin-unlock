@@ -733,6 +733,9 @@ class PinMachine {
 
 class PinBot {
 
+    numbers = "0123456789";
+    digits = "0123";
+
     historyElem = null;
     attemptElem = null;
 
@@ -749,7 +752,9 @@ class PinBot {
         this.running = false;
         this.output_history = [];
         this.pin_attempts = [];
+
         this.not_last_digit = -1;
+        this.fixed_digits = [];
 
         this.pin_attempt = 
         Math.floor(Math.random()*10000).
@@ -770,6 +775,7 @@ class PinBot {
         this.historyElem.innerHTML = "";
         this.setup(this.speed);
 
+        this.log(this.pin_attempt);
         this.running = true;
 
         this.interval = setInterval(function() {
@@ -795,7 +801,7 @@ class PinBot {
         else if (output.includes(">"))
         move = this._move(pin_attempt, 2);
         else if (output.includes("x"))
-        move = this._change(pin_attempt, this.not_last_digit);
+        move = this._change(pin_attempt);
         pin_attempt = move.result;
 
         output = machine.unlock(pin_attempt);
@@ -803,15 +809,17 @@ class PinBot {
         value(output) + " - " + move.info);
 
         var temp_pin = pin_attempt;
+        var temp_output = output;
         var unchanged_value = (value(output) == value(this.output));
 
         if (unchanged_value)
         move = this._change(pin_attempt);
         pin_attempt = move.result;
 
+        output = machine.unlock(pin_attempt);
+        unchanged_value = (value(output) == value(temp_output));
         var info = unchanged_value ? "no signal" : "ok";
 
-        output = machine.unlock(pin_attempt);
         console.log(pin_attempt + " - " + output + " - " + 
         value(output) + " - " + move.info + " - " + info);
 
@@ -836,38 +844,42 @@ class PinBot {
         "</span>";
         this.historyElem.scrollTo(0, this.historyElem.scrollHeight);
 
-        if (value(this.output) > 6 && 
-        value(this.output) < 9 && value(output) == 9)
-        this.not_last_digit = 
-        this.get_digit(pin_attempt, "last");
-
         this.attemptElem.innerText = pin_attempt;
 
         this.output = output;
         this.pin_attempt = pin_attempt;
 
         this.pin_attempts.push(pin_attempt);
+
+        console.log(this._fixed() + " - " + this.fixed_digits.join());
     }
 
     _move(pin_attempt, amt) {
-        var n = Math.floor(Math.random()*4);
-        var dir = n > 1 ? amt*-1 : amt*1;
+        var digits = this.digits.replace(this.fixed_digits, "");
+
+        var n = Math.floor(Math.random()*digits.length);
+        n = parseInt(digits[n]);
+
+        var rnd = Math.floor(Math.random()*2);
+        var dir = rnd ? amt*-1 : amt*1;
+        dir = (n+dir) < 0 || (n+dir) > 3 ? dir * -1 : dir;
+
         var split = pin_attempt.split("");
         var temp = split[n];
         var temp2 = split[n+dir];
         split[n] = split[n+dir];
         split[n+dir] = temp;
+
         var obj = {
             info: "[" + temp + ", " + temp2 + "]",
             result: split.join("")
         };
+        this._filter(pin_attempt, obj.result);
         return obj;
     };
 
-    numbers = "0123456789";
-    digits = "0123";
-    _change(pin_attempt, ignore_digit=-1) {
-        var digits = this.digits.replace(ignore_digit.toString(), "");
+    _change(pin_attempt) {
+        var digits = this.digits.replace(this.fixed_digits, "");
 
         var n = Math.floor(Math.random()*digits.length);
         n = parseInt(digits[n]);
@@ -885,19 +897,47 @@ class PinBot {
             info: "[" + temp + ", " + temp2 + "]",
             result: split.join("")
         };
+        this._filter(pin_attempt, obj.result);
         return obj;
     };
 
-    get_digit = function(pin_attempt, digit_name) {
-        var digit = 0;
-        if (digit_name == "last") {
-            var contains = [];
-            for (var n = 0; n < 4; n++) {
-                if (pin_attempt[n] != this.pin_attempt[n])
-                digit = n;
-            }
+    _filter = function(pin_attempt, pin_attempt2) {
+        var output = machine.unlock(pin_attempt);
+        var output2 = machine.unlock(pin_attempt2);
+
+        // oxxx -> xxxx
+        if ((output2 == "oxxx" && output == "xxxx") ||
+        (output2 == "ooxx" && output == "oxxx"))
+        this.get_digit(pin_attempt, pin_attempt2, "last");
+
+        // ooxx -> oxxx
+        if ((output2 == "ooxx" && output == "oxxx") ||
+        (output2 == "oxxx" && output == "ooxx"))
+        this.get_digit(pin_attempt, pin_attempt2, "last");
+
+        // ooox -> ooxx
+        if ((output2 == "ooox" && output == "ooxx") ||
+        (output2 == "ooxx" && output == "ooox"))
+        this.get_digit(pin_attempt, pin_attempt2, "last");
+    };
+
+    _fixed = function() {
+        var fixed = "";
+        for (var n = 0; n < this.fixed_digits.length; n++) {
+            fixed += this.pin_attempt[this.fixed_digits[n]];
         }
-        this.not_last_digit = digit;
+        return fixed;
+    };
+
+    get_digit = function(pin_attempt, pin_attempt2, digit_name) {
+        var digit = 0;
+        if (digit_name == "last")
+        for (var n = 0; n < 4; n++) {
+            if (pin_attempt[n] != pin_attempt2[n])
+            digit = n;
+        }
+        if (this.fixed_digits.indexOf(digit) == -1)
+        this.fixed_digits.push(digit);
     };
 
     stop() {
