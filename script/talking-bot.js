@@ -849,13 +849,17 @@ class PinBot {
         this.output = output;
         this.pin_attempt = pin_attempt;
 
+        this.output_history.push(output);
         this.pin_attempts.push(pin_attempt);
 
         console.log(this._fixed() + " - " + this.fixed_digits.join());
     }
 
     _move(pin_attempt, amt) {
-        var digits = this.digits.replace(this.fixed_digits, "");
+        var digits = this.digits;
+        for (var n = 0; n < this.fixed_digits.length; n++) {
+            digits = digits.replace(this.fixed_digits[n], "");
+        }
 
         var n = Math.floor(Math.random()*digits.length);
         n = parseInt(digits[n]);
@@ -879,7 +883,10 @@ class PinBot {
     };
 
     _change(pin_attempt) {
-        var digits = this.digits.replace(this.fixed_digits, "");
+        var digits = this.digits;
+        for (var n = 0; n < this.fixed_digits.length; n++) {
+            digits = digits.replace(this.fixed_digits[n], "");
+        }
 
         var n = Math.floor(Math.random()*digits.length);
         n = parseInt(digits[n]);
@@ -901,7 +908,7 @@ class PinBot {
         return obj;
     };
 
-    _filter = function(pin_attempt, pin_attempt2) {
+    _filter = function(pin_attempt, pin_attempt2, refilter=true) {
         var output = machine.unlock(pin_attempt);
         var output2 = machine.unlock(pin_attempt2);
 
@@ -919,6 +926,38 @@ class PinBot {
         if ((output2 == "ooox" && output == "ooxx") ||
         (output2 == "ooxx" && output == "ooox"))
         this.get_digit(pin_attempt, pin_attempt2, "last");
+    };
+
+    _refilter = function(output) {
+        var output_pairs = [
+            [ "oxxx", "xxxx" ],
+            [ "ooxx", "oxxx" ],
+            [ "ooox", "ooxx" ]
+        ];
+        var output2 = "";
+        for (var n = 0; n < output_pairs.length; n++) {
+            if (output == output_pairs[n][0])
+            output2 = output_pairs[n][1];
+            else if (output == output_pairs[n][1])
+            output2 = output_pairs[n][0];
+        }
+        if (!output2) return false;
+
+        var pin_attempt = "";
+        for (var n = 0; n < this.output_history.length; n++) {
+            if (output == this.output_history[n])
+            pin_attempt = this.pin_attempts[n];
+        }
+
+        var pin_attempt2 = "";
+        for (var n = 0; n < this.output_history.length; n++) {
+            if (output2 == this.output_history[n])
+            pin_attempt2 = this.pin_attempts[n];
+        }
+
+        if (pin_attempt && pin_attempt2)
+        this._filter(pin_attempt, pin_attempt2, false);
+        return true;
     };
 
     _fixed = function() {
