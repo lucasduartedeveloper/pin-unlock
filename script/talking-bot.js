@@ -268,6 +268,21 @@ $(document).ready(function() {
     };
     document.body.appendChild(pinBotAdvice);
 
+    pinNetworkOutput = document.createElement("span");
+    pinNetworkOutput.style.position = "fixed";
+    pinNetworkOutput.style.color = "#0ff";
+    pinNetworkOutput.innerText = "0000";
+    pinNetworkOutput.style.lineHeight = "50px";
+    pinNetworkOutput.style.textAlign = "left";
+    pinNetworkOutput.style.left = ((sw/2)+(85))+"px";
+    pinNetworkOutput.style.top = ((sh/2)-(25))+"px";
+    pinNetworkOutput.style.width = (100)+"px";
+    pinNetworkOutput.style.height = (50)+"px";
+    pinNetworkOutput.style.borderRadius = "10px";
+    pinNetworkOutput.style.animationDuration = "3s";
+    pinNetworkOutput.style.zIndex = "3";
+    document.body.appendChild(pinNetworkOutput);
+
     ws.onmessage = function(e) {
         var msg = e.data.split("|");
         if (msg[0] == "PAPER" &&
@@ -422,8 +437,8 @@ $(document).ready(function() {
             debugElemCount.innerText = bot_unlockCount;
         }
     };
-    if (debug)
-    document.body.appendChild(debugElemCount);
+    /*if (debug)
+    document.body.appendChild(debugElemCount);*/
 
     var bot_unlockSpeed = 1;
     debugElemSpeed = document.createElement("span");
@@ -445,8 +460,8 @@ $(document).ready(function() {
         pinBot.speed = bot_unlockSpeed;
         debugElemSpeed.innerText = bot_unlockSpeed+"x";
     };
-    if (debug)
-    document.body.appendChild(debugElemSpeed);
+    /*if (debug)
+    document.body.appendChild(debugElemSpeed);*/
 
     debugElemBotKeyboard = document.createElement("img");
     debugElemBotKeyboard.style.position = "fixed";
@@ -1115,6 +1130,9 @@ class PinBot {
         this.output = machine.unlock(pin_attempt);
 
         this.pin_attempts.push(pin_attempt);
+
+        var netOutput = process_input(this.pin_attempt, this.output);
+        pinNetworkOutput.innerText = netOutput;
     }
 
 };
