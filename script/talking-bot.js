@@ -1129,10 +1129,18 @@ class PinBot {
         this.pin_attempt = pin_attempt;
         this.output = machine.unlock(pin_attempt);
 
-        this.pin_attempts.push(pin_attempt);
+        this.pin_attempts.push(this.pin_attempt);
+        this.output_history.push(this.output);
 
-        var netOutput = process_input(this.pin_attempt, this.output);
-        pinNetworkOutput.innerText = netOutput;
+        if (this.pin_attempts.length > 1) {
+            var n = this.pin_attempts.length-2;
+            var k = this.pin_attempts.length-1;
+
+            var netOutput = process_input(
+            this.pin_attempts[n], this.output_history[n]);
+            back_propagate(this.pin_attempts[k]);
+            pinNetworkOutput.innerText = netOutput;
+        }
     }
 
 };
