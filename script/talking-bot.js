@@ -281,6 +281,14 @@ $(document).ready(function() {
     pinNetworkOutput.style.borderRadius = "10px";
     pinNetworkOutput.style.animationDuration = "3s";
     pinNetworkOutput.style.zIndex = "3";
+    pinNetworkOutput.onclick = function() {
+        if (pinNetwork.style.display == "none") {
+            pinNetwork.style.display = "initial";
+        }
+        else {
+            pinNetwork.style.display = "none";
+        }
+    };
     document.body.appendChild(pinNetworkOutput);
 
     ws.onmessage = function(e) {
@@ -568,6 +576,21 @@ $(document).ready(function() {
     botHistory.style.overflowY = "auto";
     botHistory.style.zIndex = "3";
     document.body.appendChild(botHistory);
+
+    pinNetwork = document.createElement("canvas");
+    pinNetwork.style.position = "fixed";
+    pinNetwork.style.display = "none";
+    pinNetwork.width = (250);
+    pinNetwork.height = (400);
+    pinNetwork.style.background = "#fff";
+    pinNetwork.style.color = "#000";
+    pinNetwork.style.left = ((sw/2)-175)+"px";
+    pinNetwork.style.top = ((sh/2)-200)+"px";
+    pinNetwork.style.width = (250)+"px";
+    pinNetwork.style.height = (400)+"px";
+    pinNetwork.style.overflowY = "auto";
+    pinNetwork.style.zIndex = "3";
+    document.body.appendChild(pinNetwork);
 
     machine = new PinMachine();
     pinBot = new PinBot(botHistory, pinBotAdvice, 1000);
