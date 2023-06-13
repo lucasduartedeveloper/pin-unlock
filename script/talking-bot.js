@@ -266,7 +266,10 @@ $(document).ready(function() {
         else
         pinInput.value = pinBotAdvice.innerText;
 
-        pinBot.unlock();
+        pinBot.unlock_norepeat();
+        if (pinBot.crashed) 
+        debugElemBotKeyboard.click();
+
         pinBotAdvice.innerText = pinBot.pin_attempt;
     };
     document.body.appendChild(pinBotAdvice);
@@ -903,6 +906,23 @@ class PinBot {
             }
         }.bind(this), (1000/this.speed));
     }
+
+    unlock_norepeat() {
+        if (this.crashed) return;
+
+        var next_pin = this.pin_attempt;
+        for (var n = 0; n < 10; n++) {
+            this.unlock();
+            if (next_pin != this.pin_attempt) {
+                next_pin = this.pin_attempt;
+                this.crashed = false;
+                break;
+            }
+            this.crashed = true;
+        }
+
+        return next_pin;
+    };
 
     unlock() {
         var pin_attempt = this.pin_attempt;
