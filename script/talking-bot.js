@@ -600,13 +600,13 @@ $(document).ready(function() {
     pinNetwork.style.position = "fixed";
     pinNetwork.style.display = "none";
     pinNetwork.width = (250);
-    pinNetwork.height = (400);
+    pinNetwork.height = (500);
     pinNetwork.style.background = "#fff";
     pinNetwork.style.color = "#000";
     pinNetwork.style.left = ((sw/2)-175)+"px";
-    pinNetwork.style.top = ((sh/2)-200)+"px";
+    pinNetwork.style.top = ((sh/2)-250)+"px";
     pinNetwork.style.width = (250)+"px";
-    pinNetwork.style.height = (400)+"px";
+    pinNetwork.style.height = (500)+"px";
     pinNetwork.style.overflowY = "auto";
     pinNetwork.style.zIndex = "3";
     document.body.appendChild(pinNetwork);

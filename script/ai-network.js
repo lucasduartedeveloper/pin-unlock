@@ -18,6 +18,10 @@ var output_layer0 = [
     0, 0, 0, 0
 ];
 
+var residue_layer = [
+    0, 0, 0, 0
+];
+
 var output_layer1 = [
     0, 0, 0, 0
 ];
@@ -28,6 +32,7 @@ var reset_network = function() {
     result_layer0 = [ 0.5, 0.5, 0.5, 0.5 ];
     hidden_layer1 = [ 0.5, 0.5, 0.5, 0.5 ];
     output_layer0 = [ 0, 0, 0, 0 ];
+    residue_layer = [ 0, 0, 0, 0 ];
     output_layer1 = [ 0, 0, 0, 0 ];
 };
 
@@ -45,10 +50,13 @@ var process_input = function(pin_input, output) {
     };
 
     for (var n = 0; n < 4; n++) {
+        result[n] = input_layer[n];
+        var weight = 0;
         for (var k = 0; k < hidden_layer0.length; k++) {
-             result[n] = input_layer[n]*hidden_layer0[n];
-             result[n] = parseFloat(result[n].toFixed(2));
+            weight += hidden_layer0[n];
         }
+        result[n] = result[n]*weight;
+        result[n] = parseFloat(result[n].toFixed(2));
     }
     result_layer0 = [ ...result ];
 
@@ -81,6 +89,14 @@ var back_propagate = function(expected_ouput) {
         hidden_layer1[n] += diff;
         hidden_layer1[n] = parseFloat(hidden_layer1[n].toFixed(2));
     }
+
+    for (var n = 0; n < 4; n++) {
+        for (var k = 0; k < hidden_layer1.length; k++) {
+             result[n] *= hidden_layer1[n];
+             result[n] = parseFloat(result[n].toFixed(2));
+        }
+    }
+    residue_layer = [ ...result ];
 
     for (var n = 0; n < 4; n++) {
         result[n] = Math.round(result[n]);
@@ -226,11 +242,35 @@ var drawNetwork = function() {
         points5.push(pos);
     }
 
-    ctx.font = "15px sans-serif";
-    ctx.fillStyle = "rgba(255, 200, 150, 255)";
+    ctx.fillStyle = "rgba(200, 255, 150, 255)";
     ctx.strokeStyle = "#000";
     paddingTop = space+(diam/2)+(diam*10);
     var points6 = [];
+
+    for (var n = 0; n < 4; n++) {
+        var x = (space*(n+1))+(diam*(n+0.5));
+        var y = paddingTop;
+
+        ctx.beginPath();
+        ctx.arc(x, y, (diam/2), 0, Math.PI*2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#000";
+        ctx.fillText(output_layer0[n].toFixed(2), x, y);
+        ctx.fillStyle = "rgba(200, 255, 150, 255)";
+
+        var pos = {
+            x: x, y: y
+        };
+        points6.push(pos);
+    }
+
+    ctx.font = "15px sans-serif";
+    ctx.fillStyle = "rgba(255, 200, 150, 255)";
+    ctx.strokeStyle = "#000";
+    paddingTop = space+(diam/2)+(diam*12);
+    var points7 = [];
 
     for (var n = 0; n < 4; n++) {
         var x = (space*(n+1))+(diam*(n+0.5));
@@ -248,7 +288,7 @@ var drawNetwork = function() {
         var pos = {
             x: x, y: y
         };
-        points6.push(pos);
+        points7.push(pos);
     }
 
     ctx.lineWidth = 1;
@@ -262,6 +302,8 @@ var drawNetwork = function() {
     ...getEndConnectionPoints(points4, points5, diam/2) ];
     connections = [ ...connections, 
     ...getEndConnectionPoints(points5, points6, diam/2) ];
+    connections = [ ...connections, 
+    ...getEndConnectionPoints(points6, points7, diam/2) ];
 
     //console.log(connections);
     for (var n = 0; n < connections.length; n++) {
