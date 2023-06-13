@@ -154,7 +154,7 @@ var drawNetwork = function() {
         points2.push(pos);
     }
 
-    ctx.fillStyle = "rgba(150, 255, 150, 255)";
+    ctx.fillStyle = "rgba(150, 150, 255, 255)";
     ctx.strokeStyle = "#000";
     paddingTop = space+(diam/2)+(diam*4);
     var points3 = [];
@@ -169,8 +169,8 @@ var drawNetwork = function() {
         ctx.stroke();
 
         ctx.fillStyle = "#000";
-        ctx.fillText(hidden_layer1[n], x, y);
-        ctx.fillStyle = "rgba(150, 255, 150, 255)";
+        ctx.fillText(result_layer0[n], x, y);
+        ctx.fillStyle = "rgba(150, 150, 255, 255)";
 
         var pos = {
             x: x, y: y
@@ -193,13 +193,37 @@ var drawNetwork = function() {
         ctx.stroke();
 
         ctx.fillStyle = "#000";
-        ctx.fillText(output_layer[n], x, y);
+        ctx.fillText(hidden_layer1[n], x, y);
         ctx.fillStyle = "rgba(150, 255, 150, 255)";
 
         var pos = {
             x: x, y: y
         };
         points4.push(pos);
+    }
+
+    ctx.fillStyle = "rgba(150, 255, 150, 255)";
+    ctx.strokeStyle = "#000";
+    paddingTop = space+(diam/2)+(diam*8);
+    var points5 = [];
+
+    for (var n = 0; n < 4; n++) {
+        var x = (space*(n+1))+(diam*(n+0.5));
+        var y = paddingTop;
+
+        ctx.beginPath();
+        ctx.arc(x, y, (diam/2), 0, Math.PI*2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#000";
+        ctx.fillText(output_layer[n], x, y);
+        ctx.fillStyle = "rgba(150, 255, 150, 255)";
+
+        var pos = {
+            x: x, y: y
+        };
+        points5.push(pos);
     }
 
     ctx.lineWidth = 1;
@@ -209,17 +233,16 @@ var drawNetwork = function() {
     ...getConnectionPoints(points2, points3, diam/2) ];
     connections = [ ...connections, 
     ...getConnectionPoints(points3, points4, diam/2) ];
+    connections = [ ...connections, 
+    ...getEndConnectionPoints(points4, points5, diam/2) ];
 
     //console.log(connections);
-
     for (var n = 0; n < connections.length; n++) {
         ctx.beginPath();
         ctx.moveTo(connections[n].pos0.x, connections[n].pos0.y);
         ctx.lineTo(connections[n].pos1.x, connections[n].pos1.y);
         ctx.stroke();
     }
-
-    
 };
 
 var getConnectionPoints = function(points, points2, radius) {
@@ -238,6 +261,24 @@ var getConnectionPoints = function(points, points2, radius) {
             };
             connections.push(pos);
         }
+    }
+    return connections;
+}
+
+var getEndConnectionPoints = function(points, points2, radius) {
+    var connections = [];
+    for (var n = 0; n < points.length; n++) {
+            var c0 = { x: points[n].x, y: points[n].y };
+            var p0 = { x: points[n].x, y: points[n].y+radius };
+
+            var c1 = { x: points2[n].x, y: points2[n].y };
+            var p1 = { x: points2[n].x, y: points2[n].y-radius };
+
+            var pos = {
+                pos0: p0,
+                pos1: p1
+            };
+            connections.push(pos);
     }
     return connections;
 }
