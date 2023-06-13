@@ -41,15 +41,16 @@ var process_input = function(pin_input, output) {
     var output_value = "x><o";
     for (var n = 0; n < 4; n++) {
         var value = output_value.indexOf(output[n]);
-        hidden_layer0[n] = 0.1+(value/10);
+        hidden_layer0[n] = parseFloat((0.1+(value/10)).toFixed(2));
     };
 
     for (var n = 0; n < 4; n++) {
         for (var k = 0; k < hidden_layer0.length; k++) {
-             result[n] = hidden_layer0[n];
+             result[n] = input_layer[n]*hidden_layer0[n];
              result[n] = parseFloat(result[n].toFixed(2));
         }
     }
+    result_layer0 = [ ...result ];
 
     for (var n = 0; n < 4; n++) {
         for (var k = 0; k < hidden_layer1.length; k++) {
@@ -78,6 +79,7 @@ var back_propagate = function(expected_ouput) {
         var pct = (1/output_layer0[n])*result[n];
         var diff = pct - hidden_layer1[n];
         hidden_layer1[n] += diff;
+        hidden_layer1[n] = parseFloat(hidden_layer1[n].toFixed(2));
     }
 
     for (var n = 0; n < 4; n++) {
@@ -127,6 +129,7 @@ var drawNetwork = function() {
         points.push(pos);
     }
 
+    ctx.font = "10px sans-serif";
     ctx.fillStyle = "rgba(150, 255, 150, 255)";
     ctx.strokeStyle = "#000";
     paddingTop = space+(diam/2)+(diam*2);
@@ -142,7 +145,7 @@ var drawNetwork = function() {
         ctx.stroke();
 
         ctx.fillStyle = "#000";
-        ctx.fillText(hidden_layer0[n], x, y);
+        ctx.fillText(hidden_layer0[n].toFixed(2), x, y);
         ctx.fillStyle = "rgba(150, 255, 150, 255)";
 
         var pos = {
@@ -166,7 +169,7 @@ var drawNetwork = function() {
         ctx.stroke();
 
         ctx.fillStyle = "#000";
-        ctx.fillText(result_layer0[n], x, y);
+        ctx.fillText(result_layer0[n].toFixed(2), x, y);
         ctx.fillStyle = "rgba(150, 150, 255, 255)";
 
         var pos = {
@@ -214,7 +217,7 @@ var drawNetwork = function() {
         ctx.stroke();
 
         ctx.fillStyle = "#000";
-        ctx.fillText(output_layer0[n], x, y);
+        ctx.fillText(output_layer0[n].toFixed(2), x, y);
         ctx.fillStyle = "rgba(150, 255, 150, 255)";
 
         var pos = {
@@ -223,6 +226,7 @@ var drawNetwork = function() {
         points5.push(pos);
     }
 
+    ctx.font = "15px sans-serif";
     ctx.fillStyle = "rgba(255, 200, 150, 255)";
     ctx.strokeStyle = "#000";
     paddingTop = space+(diam/2)+(diam*10);
