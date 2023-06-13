@@ -91,16 +91,21 @@ var back_propagate = function(expected_ouput) {
 
     reinput_layer = [ ...result ];
 
-    /*var weight = 0;
-    for (var k = 0; k < hidden_layer1.length; k++) {
+    var weight = 0;
+    for (var n = 0; n < hidden_layer1.length; n++) {
         weight += hidden_layer1[n];
     }
-    var new_weight = (weight/output_layer1[n])*result[n];
+    var weight_differences = [];
 
     for (var n = 0; n < 4; n++) {
-        hidden_layer1[n] = new_weight;
+        weight_differences[n] = 
+        ((weight/output_layer0[n])*reinput_layer[n])/4;
+    }
+
+    for (var n = 0; n < 4; n++) {
+        hidden_layer1[n] = weight_differences[n];
         hidden_layer1[n] = parseFloat(hidden_layer1[n].toFixed(2));
-    }*/
+    }
 
     for (var n = 0; n < 4; n++) {
         for (var k = 0; k < hidden_layer1.length; k++) {
