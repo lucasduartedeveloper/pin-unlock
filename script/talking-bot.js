@@ -288,11 +288,11 @@ $(document).ready(function() {
     pinNetworkOutput.style.animationDuration = "3s";
     pinNetworkOutput.style.zIndex = "3";
     pinNetworkOutput.onclick = function() {
-        if (pinNetwork.style.display == "none") {
-            pinNetwork.style.display = "initial";
+        if (pinNetworkContainer.style.display == "none") {
+            pinNetworkContainer.style.display = "initial";
         }
         else {
-            pinNetwork.style.display = "none";
+            pinNetworkContainer.style.display = "none";
         }
     };
     document.body.appendChild(pinNetworkOutput);
@@ -600,20 +600,30 @@ $(document).ready(function() {
     botHistory.style.zIndex = "3";
     document.body.appendChild(botHistory);
 
+    pinNetworkContainer = document.createElement("div");
+    pinNetworkContainer.style.position = "absolute";
+    pinNetworkContainer.style.display = "none";
+    pinNetworkContainer.style.left = ((sw/2)-175)+"px";
+    pinNetworkContainer.style.top = ((sh/2)-250)+"px";
+    pinNetworkContainer.style.width = (250)+"px";
+    pinNetworkContainer.style.height = (500)+"px";
+    pinNetworkContainer.style.overflowY = "hidden";
+    pinNetworkContainer.style.zIndex = "3";
+    document.body.appendChild(pinNetworkContainer);
+
     pinNetwork = document.createElement("canvas");
-    pinNetwork.style.position = "fixed";
-    pinNetwork.style.display = "none";
+    pinNetwork.style.position = "absolute";
     pinNetwork.width = (250);
     pinNetwork.height = (500);
     pinNetwork.style.background = "#fff";
     pinNetwork.style.color = "#000";
-    pinNetwork.style.left = ((sw/2)-175)+"px";
-    pinNetwork.style.top = ((sh/2)-250)+"px";
+    pinNetwork.style.left = (0)+"px";
+    pinNetwork.style.top = (0)+"px";
     pinNetwork.style.width = (250)+"px";
     pinNetwork.style.height = (500)+"px";
     pinNetwork.style.overflowY = "auto";
     pinNetwork.style.zIndex = "3";
-    document.body.appendChild(pinNetwork);
+    pinNetworkContainer.appendChild(pinNetwork);
 
     machine = new PinMachine();
     pinBot = new PinBot(botHistory, pinBotAdvice, 1000);
