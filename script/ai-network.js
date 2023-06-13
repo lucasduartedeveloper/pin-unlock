@@ -14,33 +14,35 @@ var hidden_layer1 = [
     1, 1, 1, 1
 ];
 
-var output_layer = [
+var output_layer0 = [
+    0, 0, 0, 0
+];
+
+var output_layer1 = [
     0, 0, 0, 0
 ];
 
 var reset_network = function() {
     input_layer = [ 0, 0, 0, 0 ];
     hidden_layer0 = [ 0.5, 0.5, 0.5, 0.5 ];
+    result_layer0 = [ 0.5, 0.5, 0.5, 0.5 ];
     hidden_layer1 = [ 0.5, 0.5, 0.5, 0.5 ];
-    output_layer = [ 0, 0, 0, 0 ];
+    output_layer0 = [ 0, 0, 0, 0 ];
+    output_layer1 = [ 0, 0, 0, 0 ];
 };
 
 var process_input = function(pin_input, output) {
-    console.log(pin_input, output);
-
     var result = pin_input.split("");
     for (var n = 0; n < 4; n++) {
         result[n] = parseInt(result[n]);
     }
     input_layer = [ ...result ];
-    console.log([ ...input_layer ]);
 
     var output_value = "x><o";
     for (var n = 0; n < 4; n++) {
         var value = output_value.indexOf(output[n]);
         hidden_layer0[n] = 0.1+(value/10);
     };
-    console.log([ ...hidden_layer0 ]);
 
     for (var n = 0; n < 4; n++) {
         for (var k = 0; k < hidden_layer0.length; k++) {
@@ -48,7 +50,6 @@ var process_input = function(pin_input, output) {
              result[n] = parseFloat(result[n].toFixed(2));
         }
     }
-    console.log([ ...result ]);
 
     for (var n = 0; n < 4; n++) {
         for (var k = 0; k < hidden_layer1.length; k++) {
@@ -56,15 +57,12 @@ var process_input = function(pin_input, output) {
              result[n] = parseFloat(result[n].toFixed(2));
         }
     }
-    console.log([ ...hidden_layer1 ]);
-
-    output_layer = [ ...result ];
-    console.log(output_layer);
+    output_layer0 = [ ...result ];
 
     for (var n = 0; n < 4; n++) {
         result[n] = Math.round(result[n]);
     }
-    console.log(result);
+    output_layer1 = [ ...result ];
 
     drawNetwork();
     return result.join("");
@@ -76,17 +74,16 @@ var back_propagate = function(expected_ouput) {
         result[n] = parseInt(result[n]);
     }
 
-    console.log("algorithm");
-    console.log([ ...input_layer ]);
-    console.log([ ...hidden_layer0 ]);
     for (var n = 0; n < 4; n++) {
-        var pct = (1/output_layer[n])*result[n];
+        var pct = (1/output_layer0[n])*result[n];
         var diff = pct - hidden_layer1[n];
         hidden_layer1[n] += diff;
     }
-    console.log([ ...hidden_layer1 ]);
-    console.log([ ...output_layer ]);
-    console.log([ ...result ]);
+
+    for (var n = 0; n < 4; n++) {
+        result[n] = Math.round(result[n]);
+    }
+    //output_layer1 = [ ...result ];
 
     drawNetwork();
 };
@@ -217,7 +214,7 @@ var drawNetwork = function() {
         ctx.stroke();
 
         ctx.fillStyle = "#000";
-        ctx.fillText(output_layer[n], x, y);
+        ctx.fillText(output_layer0[n], x, y);
         ctx.fillStyle = "rgba(150, 255, 150, 255)";
 
         var pos = {
@@ -226,15 +223,41 @@ var drawNetwork = function() {
         points5.push(pos);
     }
 
+    ctx.fillStyle = "rgba(150, 255, 255, 255)";
+    ctx.strokeStyle = "#000";
+    paddingTop = space+(diam/2)+(diam*10);
+    var points6 = [];
+
+    for (var n = 0; n < 4; n++) {
+        var x = (space*(n+1))+(diam*(n+0.5));
+        var y = paddingTop;
+
+        ctx.beginPath();
+        ctx.arc(x, y, (diam/2), 0, Math.PI*2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#000";
+        ctx.fillText(output_layer1[n], x, y);
+        ctx.fillStyle = "rgba(150, 255, 255, 255)";
+
+        var pos = {
+            x: x, y: y
+        };
+        points6.push(pos);
+    }
+
     ctx.lineWidth = 1;
     var connections = [];
     connections = [ ...getConnectionPoints(points, points2, diam/2) ];
     connections = [ ...connections, 
-    ...getConnectionPoints(points2, points3, diam/2) ];
+    ...getEndConnectionPoints(points2, points3, diam/2) ];
     connections = [ ...connections, 
     ...getConnectionPoints(points3, points4, diam/2) ];
     connections = [ ...connections, 
     ...getEndConnectionPoints(points4, points5, diam/2) ];
+    connections = [ ...connections, 
+    ...getEndConnectionPoints(points5, points6, diam/2) ];
 
     //console.log(connections);
     for (var n = 0; n < connections.length; n++) {
