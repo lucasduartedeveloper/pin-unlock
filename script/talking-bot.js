@@ -405,11 +405,9 @@ $(document).ready(function() {
     if (debug)
     document.body.appendChild(debugElemToggle);
 
-    var rnd = Math.floor(Math.random()*2);
     debugElemSkip = document.createElement("i");
     debugElemSkip.style.position = "fixed";
-    debugElemSkip.className = "fa-solid "+
-    (rnd ? "fa-arrow-left" : "fa-arrow-right");
+    debugElemSkip.className = "fa-solid fa-trash";
     debugElemSkip.style.color = "#fff";
     debugElemSkip.style.fontSize = "25px";
     debugElemSkip.style.left = ((sw/2)+(50))+"px";

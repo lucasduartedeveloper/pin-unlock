@@ -61,10 +61,13 @@ var process_input = function(pin_input, output) {
     result_layer0 = [ ...result ];
 
     for (var n = 0; n < 4; n++) {
+        result[n] = result_layer0[n];
+        var weight = 0;
         for (var k = 0; k < hidden_layer1.length; k++) {
-             result[n] *= hidden_layer1[n];
-             result[n] = parseFloat(result[n].toFixed(2));
+            weight += hidden_layer1[n];
         }
+        result[n] = result[n]*weight;
+        result[n] = parseFloat(result[n].toFixed(2));
     }
     output_layer0 = [ ...result ];
 
@@ -83,20 +86,24 @@ var back_propagate = function(expected_ouput) {
         result[n] = parseInt(result[n]);
     }
 
-    for (var n = 0; n < 4; n++) {
-        var pct = (1/output_layer0[n])*result[n];
-        var diff = pct - hidden_layer1[n];
-        hidden_layer1[n] += diff;
-        hidden_layer1[n] = parseFloat(hidden_layer1[n].toFixed(2));
+    /*var weight = 0;
+    for (var k = 0; k < hidden_layer1.length; k++) {
+        weight += hidden_layer1[n];
     }
+    var new_weight = (weight/output_layer1[n])*result[n];
 
     for (var n = 0; n < 4; n++) {
+        hidden_layer1[n] = new_weight;
+        hidden_layer1[n] = parseFloat(hidden_layer1[n].toFixed(2));
+    }*/
+
+    residue_layer = [ ...result ];
+    for (var n = 0; n < 4; n++) {
         for (var k = 0; k < hidden_layer1.length; k++) {
-             result[n] *= hidden_layer1[n];
-             result[n] = parseFloat(result[n].toFixed(2));
+             residue_layer[n] -= output_layer0[n];
+             residue_layer[n] = parseFloat(residue_layer[n].toFixed(2));
         }
     }
-    residue_layer = [ ...result ];
 
     for (var n = 0; n < 4; n++) {
         result[n] = Math.round(result[n]);
@@ -257,7 +264,7 @@ var drawNetwork = function() {
         ctx.stroke();
 
         ctx.fillStyle = "#000";
-        ctx.fillText(output_layer0[n].toFixed(2), x, y);
+        ctx.fillText(residue_layer[n].toFixed(2), x, y);
         ctx.fillStyle = "rgba(200, 255, 150, 255)";
 
         var pos = {
