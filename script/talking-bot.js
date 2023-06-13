@@ -853,6 +853,10 @@ class PinBot {
         this.historyElem = historyElem;
         this.attemptElem = attemptElem;
 
+        this.debug_information = {
+            crashed: false
+        };
+
         this.setup_callback = false;
         this.setup(1);
         this.count = 0;
@@ -908,19 +912,23 @@ class PinBot {
     }
 
     unlock_norepeat() {
-        if (this.crashed) return;
+        if (this.debug_information.crashed) return;
 
+        var limit_reached = false;
         var next_pin = this.pin_attempt;
         for (var n = 0; n < 10; n++) {
             this.unlock();
+            var repeated = this.pin_attempts.filter((o) => {
+                return o == this.pin_attempt;
+            }).length > 0;
+
             if (next_pin != this.pin_attempt) {
                 next_pin = this.pin_attempt;
-                this.crashed = false;
                 break;
             }
-            this.crashed = true;
         }
 
+        this.crashed = limit_reached;
         return next_pin;
     };
 
