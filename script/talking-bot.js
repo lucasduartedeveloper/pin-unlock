@@ -405,6 +405,25 @@ $(document).ready(function() {
     if (debug)
     document.body.appendChild(debugElemToggle);
 
+    var rnd = Math.floor(Math.random()*2);
+    debugElemSkip = document.createElement("i");
+    debugElemSkip.style.position = "fixed";
+    debugElemSkip.className = "fa-solid "+
+    (rnd ? "fa-arrow-left" : "fa-arrow-right");
+    debugElemSkip.style.color = "#fff";
+    debugElemSkip.style.fontSize = "25px";
+    debugElemSkip.style.left = ((sw/2)+(50))+"px";
+    debugElemSkip.style.top = ((sh/2)+(225))+"px";
+    debugElemSkip.style.width = (50)+"px";
+    debugElemSkip.style.height = (50)+"px";
+    debugElemSkip.style.zIndex = "3";
+    debugElemSkip.onclick = function() {
+        pinInput.value = remoteObj.pin;
+        updateScreen();
+    };
+    if (debug)
+    document.body.appendChild(debugElemSkip);
+
     debugElemBot = document.createElement("img");
     debugElemBot.style.position = "fixed";
     debugElemBot.src = "img/bot-icon.png";
@@ -445,8 +464,8 @@ $(document).ready(function() {
             debugElemCount.innerText = bot_unlockCount;
         }
     };
-    /*if (debug)
-    document.body.appendChild(debugElemCount);*/
+    if (debug)
+    document.body.appendChild(debugElemCount);
 
     var bot_unlockSpeed = 1;
     debugElemSpeed = document.createElement("span");
