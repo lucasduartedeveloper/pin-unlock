@@ -223,7 +223,7 @@ var drawNetwork = function() {
         points5.push(pos);
     }
 
-    ctx.fillStyle = "rgba(150, 255, 255, 255)";
+    ctx.fillStyle = "rgba(255, 200, 150, 255)";
     ctx.strokeStyle = "#000";
     paddingTop = space+(diam/2)+(diam*10);
     var points6 = [];
@@ -239,7 +239,7 @@ var drawNetwork = function() {
 
         ctx.fillStyle = "#000";
         ctx.fillText(output_layer1[n], x, y);
-        ctx.fillStyle = "rgba(150, 255, 255, 255)";
+        ctx.fillStyle = "rgba(255, 200, 150, 255)";
 
         var pos = {
             x: x, y: y
