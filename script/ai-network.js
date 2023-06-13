@@ -80,7 +80,7 @@ var process_input = function(pin_input, output) {
     }
 
     drawNetwork();
-    return result.join("");
+    return output_layer1.join("");
 };
 
 var back_propagate = function(expected_ouput) {
@@ -102,10 +102,9 @@ var back_propagate = function(expected_ouput) {
         hidden_layer1[n] = parseFloat(hidden_layer1[n].toFixed(2));
     }*/
 
-    residue_layer = [ ...output_layer0 ];
     for (var n = 0; n < 4; n++) {
         for (var k = 0; k < hidden_layer1.length; k++) {
-             residue_layer[n] -= result[n];
+             residue_layer[n] = output_layer0[n] - result[n];
              residue_layer[n] = parseFloat(residue_layer[n].toFixed(2));
         }
     }
@@ -277,6 +276,9 @@ var drawNetwork = function() {
         };
         points6.push(pos);
     }
+
+    ctx.strokeRect((space/2), paddingTop-(diam/2)-(space/2), 
+    (width)-(space), (diam)+(space));
 
     ctx.font = "15px sans-serif";
     ctx.fillStyle = "rgba(255, 200, 150, 255)";

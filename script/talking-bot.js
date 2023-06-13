@@ -265,6 +265,9 @@ $(document).ready(function() {
         }
         else
         pinInput.value = pinBotAdvice.innerText;
+
+        pinBot.unlock();
+        pinBotAdvice.innerText = pinBot.pin_attempt;
     };
     document.body.appendChild(pinBotAdvice);
 
