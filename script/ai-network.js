@@ -26,6 +26,10 @@ var output_layer1 = [
     0, 0, 0, 0
 ];
 
+var reinput_layer = [
+    0, 0, 0, 0
+];
+
 var reset_network = function() {
     input_layer = [ 0, 0, 0, 0 ];
     hidden_layer0 = [ 0.5, 0.5, 0.5, 0.5 ];
@@ -34,6 +38,7 @@ var reset_network = function() {
     output_layer0 = [ 0, 0, 0, 0 ];
     residue_layer = [ 0, 0, 0, 0 ];
     output_layer1 = [ 0, 0, 0, 0 ];
+    reinput_layer = [ 0, 0, 0, 0 ];
 };
 
 var process_input = function(pin_input, output) {
@@ -50,31 +55,29 @@ var process_input = function(pin_input, output) {
     };
 
     for (var n = 0; n < 4; n++) {
-        result[n] = input_layer[n];
+        result_layer0[n] = input_layer[n];
         var weight = 0;
         for (var k = 0; k < hidden_layer0.length; k++) {
             weight += hidden_layer0[n];
         }
-        result[n] = result[n]*weight;
-        result[n] = parseFloat(result[n].toFixed(2));
+        result_layer0[n] = result_layer0[n]*weight;
+        result_layer0[n] = parseFloat(result_layer0[n].toFixed(2));
     }
-    result_layer0 = [ ...result ];
 
     for (var n = 0; n < 4; n++) {
-        result[n] = result_layer0[n];
+        output_layer0[n] = result_layer0[n];
         var weight = 0;
         for (var k = 0; k < hidden_layer1.length; k++) {
             weight += hidden_layer1[n];
         }
-        result[n] = result[n]*weight;
-        result[n] = parseFloat(result[n].toFixed(2));
+        output_layer0[n] = output_layer0[n]*weight;
+        output_layer0[n] = parseFloat(output_layer0[n].toFixed(2));
     }
-    output_layer0 = [ ...result ];
 
+    output_layer1 = [ ...output_layer0 ];
     for (var n = 0; n < 4; n++) {
-        result[n] = Math.round(result[n]);
+        output_layer1[n] = Math.round(output_layer1[n]);
     }
-    output_layer1 = [ ...result ];
 
     drawNetwork();
     return result.join("");
@@ -85,6 +88,8 @@ var back_propagate = function(expected_ouput) {
     for (var n = 0; n < 4; n++) {
         result[n] = parseInt(result[n]);
     }
+
+    reinput_layer = [ ...result ];
 
     /*var weight = 0;
     for (var k = 0; k < hidden_layer1.length; k++) {
@@ -97,10 +102,10 @@ var back_propagate = function(expected_ouput) {
         hidden_layer1[n] = parseFloat(hidden_layer1[n].toFixed(2));
     }*/
 
-    residue_layer = [ ...result ];
+    residue_layer = [ ...output_layer0 ];
     for (var n = 0; n < 4; n++) {
         for (var k = 0; k < hidden_layer1.length; k++) {
-             residue_layer[n] -= output_layer0[n];
+             residue_layer[n] -= result[n];
              residue_layer[n] = parseFloat(residue_layer[n].toFixed(2));
         }
     }
@@ -296,6 +301,26 @@ var drawNetwork = function() {
             x: x, y: y
         };
         points7.push(pos);
+    }
+
+    ctx.font = "15px sans-serif";
+    ctx.fillStyle = "rgba(255, 200, 150, 255)";
+    ctx.strokeStyle = "#000";
+    paddingTop = space+(diam/2)+(diam*13.5);
+    var points8 = [];
+
+    for (var n = 0; n < 4; n++) {
+        var x = (space*(n+1))+(diam*(n+0.5));
+        var y = paddingTop;
+
+        ctx.beginPath();
+        ctx.arc(x, y, (diam/2), 0, Math.PI*2);
+        ctx.stroke();
+        //ctx.strokeRect(x-(diam/2), y-(diam/2), (diam), (diam));
+
+        ctx.fillStyle = "#000";
+        ctx.fillText(reinput_layer[n], x, y);
+        ctx.fillStyle = "rgba(255, 200, 150, 255)";
     }
 
     ctx.lineWidth = 1;
