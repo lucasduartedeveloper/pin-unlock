@@ -41,18 +41,22 @@ var reset_network = function() {
     reinput_layer = [ 0, 0, 0, 0 ]; // pin expected
 };
 
-var process_input = function(pin_input, output) {
-    var result = pin_input.split("");
-    for (var n = 0; n < 4; n++) {
-        result[n] = parseInt(result[n]);
+var process_input = function(pin_input="", output="") {
+    if (pin_input) {
+        var result = pin_input.split("");
+        for (var n = 0; n < 4; n++) {
+            result[n] = parseInt(result[n]);
+        }
+        input_layer = [ ...result ];
     }
-    input_layer = [ ...result ];
 
-    var output_value = "x><o";
-    for (var n = 0; n < 4; n++) {
-        var value = output_value.indexOf(output[n]);
-        hidden_layer0[n] = parseFloat((0.1+(value/10)).toFixed(2));
-    };
+    if (output) {
+        var output_value = "x><o";
+        for (var n = 0; n < 4; n++) {
+            var value = output_value.indexOf(output[n]);
+            hidden_layer0[n] = parseFloat((0.1+(value/10)).toFixed(2));
+        };
+    }
 
     for (var n = 0; n < 4; n++) {
         result_layer0[n] = input_layer[n];
@@ -60,7 +64,7 @@ var process_input = function(pin_input, output) {
         for (var k = 0; k < hidden_layer0.length; k++) {
             weight += hidden_layer0[n];
         }
-        result_layer0[n] = result_layer0[n]*weight;
+        result_layer0[n] = (1+result_layer0[n])*weight;
         result_layer0[n] = parseFloat(result_layer0[n].toFixed(2));
     }
 
@@ -68,7 +72,7 @@ var process_input = function(pin_input, output) {
         output_layer0[n] = result_layer0[n];
         var weight = 0;
         for (var k = 0; k < hidden_layer1.length; k++) {
-            weight += hidden_layer1[n];
+            weight += hidden_layer1[k];
         }
         output_layer0[n] = output_layer0[n]*weight;
         output_layer0[n] = parseFloat(output_layer0[n].toFixed(2));
@@ -85,7 +89,11 @@ var process_input = function(pin_input, output) {
     return output_layer1.join("");
 };
 
-var locked_weights = false;
+var reprocess_input = function() {
+    process_input();
+};
+
+var locked_weights = true;
 var back_propagate = function(expected_ouput) {
     var result = expected_ouput.split("");
     for (var n = 0; n < 4; n++) {
@@ -262,7 +270,8 @@ var drawNetwork = function() {
             var value = prompt();
             if (value != null) {
                 value = parseFloat(value);
-                hidden_layer1[this.n] = value;
+                hidden_layer1[this.weigth_index] = value;
+                reprocess_input();
                 drawNetwork();
             }
         };
